@@ -1,0 +1,23 @@
+{
+  "name": "hospital-sys-api-v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thong17/hospital-sys-api-v2.git"
+  },
+  "author": "thong",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Thong17/hospital-sys-api-v2/issues"
+  },
+  "homepage": "https://github.com/Thong17/hospital-sys-api-v2#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemon": "^3.0.1"
+  }
+}
