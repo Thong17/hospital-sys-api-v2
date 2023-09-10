@@ -20,4 +20,11 @@ class ValidationError extends Error {
     }
 }
 
-module.exports = { MissingFieldError, BadRequestError, ValidationError }
+class UnauthorizedError extends Error {
+    constructor(message) {
+        super(message)
+        this.code = 401
+    }
+}
+
+module.exports = { MissingFieldError, BadRequestError, ValidationError, UnauthorizedError }
