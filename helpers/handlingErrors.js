@@ -12,4 +12,12 @@ class BadRequestError extends Error {
     }
 }
 
-module.exports = { MissingFieldError, BadRequestError }
+class ValidationError extends Error {
+    constructor(message, fields) {
+        super(message)
+        this.code = 422
+        this.fields = fields
+    }
+}
+
+module.exports = { MissingFieldError, BadRequestError, ValidationError }
