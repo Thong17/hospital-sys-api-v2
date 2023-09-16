@@ -27,4 +27,11 @@ class UnauthorizedError extends Error {
     }
 }
 
-module.exports = { MissingFieldError, BadRequestError, ValidationError, UnauthorizedError }
+class TokenExpiredError extends Error {
+    constructor(message = 'TOKEN_EXPIRED') {
+        super(message)
+        this.code = 401
+    }
+}
+
+module.exports = { MissingFieldError, BadRequestError, ValidationError, UnauthorizedError, TokenExpiredError }

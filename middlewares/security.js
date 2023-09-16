@@ -21,15 +21,9 @@ exports.hash = (req, res, next) => {
 
 exports.auth = async (req, res, next) => {
     const accessToken = req.headers.authorization?.replace('Bearer ', '')
-    const refreshToken = req.headers['refresh-token']
     try {
         if (!accessToken) throw new UnauthorizedError('UNAUTHORIZED')
-        const data = await verifyToken(process.env.JWT_SECRET, accessToken, refreshToken)
-        if (data.newAccessToken && data.newRefreshToken) {
-            res.set('Access-Control-Expose-Headers', 'access-token, refresh-token')
-            res.set('new-access-token', data.newAccessToken)
-            res.set('new-refresh-token', data.newRefreshToken)
-        }
+        await verifyToken(process.env.JWT_SECRET, accessToken)
         next()
     } catch (error) {
         return response.failure(error.code, { message: error.message }, res, error)

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { UnauthorizedError } = require('./handlingErrors')
+const { TokenExpiredError } = require('./handlingErrors')
 
 module.exports = utils = {
     createHash: (str) => {
@@ -27,25 +27,14 @@ module.exports = utils = {
             }
         })
     },
-    verifyToken: (secret, accessToken, refreshToken) => {
+    verifyToken: (secret, accessToken, message) => {
         return new Promise(async (resolve, reject) => {
             try {
                 const decodedAccessToken = jwt.verify(accessToken, secret)
                 resolve(decodedAccessToken)
             } catch (error) {
                 if (error.name !== 'TokenExpiredError') reject(error)
-                if (!refreshToken) reject(new UnauthorizedError('UNAUTHORIZED'))
-                try {
-                    const decodedRefreshToken = jwt.verify(refreshToken, secret)
-                    if (decodedRefreshToken.accessToken !== accessToken) reject(new UnauthorizedError('UNAUTHORIZED'))
-                    delete decodedRefreshToken.accessToken
-                    const newAccessToken = await utils.issueToken({ id: decodedRefreshToken.id }, process.env.JWT_SECRET, Number(process.env.JWT_ACCESS_TOKEN_TIME))
-                    const newRefreshToken = await utils.issueToken({ id: decodedRefreshToken.id, accessToken: newAccessToken }, process.env.JWT_SECRET, Number(process.env.JWT_REFRESH_TOKEN_TIME))
-                    resolve({ ...decodedRefreshToken, newAccessToken, newRefreshToken })
-                } catch (error) {
-                    reject(error)
-                }
-                
+                reject(new TokenExpiredError(message))
             }
         })
     },
