@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Role = require('./Role')
 
 const schema = new mongoose.Schema({
     username: {
@@ -29,7 +30,35 @@ const schema = new mongoose.Schema({
                 })
             }
         }
-    }
+    },
+    role: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Role',
+        required: [true, 'ROLE_IS_REQUIRED'],
+        validate: {
+            validator: (id) => {
+                return new Promise((resolve, reject) => {
+                    Role.findById(id, function (err, doc) {
+                        if (err) return reject(err)
+                        resolve(!!doc)
+                    })
+                })
+            },
+            message: 'ROLE_IS_NOT_EXIST'
+        },
+    },
+    createdBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
 })
 
 module.exports = mongoose.model('User', schema)
