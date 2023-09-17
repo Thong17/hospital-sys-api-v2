@@ -1,4 +1,5 @@
 const response = require('../helpers/response')
+const User = require('../models/User')
 const { loginValidation, registerValidation } = require('../validations/authValidation')
 const { ValidationError, UnauthorizedError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, issueToken, verifyToken } = require('../helpers/utils')
@@ -19,7 +20,8 @@ exports.register = async (req, res) => {
     try {
         const { error } = registerValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
-        return response.success(200, { message: 'USER_HAS_REGISTERED' })
+        const user = await User.create(req.body)
+        return response.success(200, { message: 'USER_HAS_REGISTERED', data: user }, res)
     } catch (error) {
         return response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
