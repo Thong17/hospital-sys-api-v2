@@ -2,15 +2,29 @@ const response = require('../helpers/response')
 const User = require('../models/User')
 const { loginValidation, registerValidation } = require('../validations/authValidation')
 const { ValidationError, UnauthorizedError } = require('../helpers/handlingErrors')
-const { extractJoiErrors, issueToken, verifyToken } = require('../helpers/utils')
+const { extractJoiErrors, issueToken, verifyToken, encryptPassword, validatePassword, comparePassword } = require('../helpers/utils')
 
 exports.login = async (req, res) => {
     try {
         const { error } = loginValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
-        const accessToken = await issueToken({ id: 1 }, process.env.JWT_SECRET, Number(process.env.JWT_ACCESS_TOKEN_TIME))
-        const refreshToken = await issueToken({ id: 1, accessToken }, process.env.JWT_SECRET, Number(process.env.JWT_REFRESH_TOKEN_TIME))
-        return response.success(200, { accessToken, refreshToken }, res)
+        const { username, password } = req.body
+
+        const user = await User.findOne({ username })
+        if (!user) throw new UnauthorizedError('INCORRECT_USERNAME')
+
+        const isMatched = await comparePassword(password, user.password)
+        if (!isMatched) throw new UnauthorizedError('INCORRECT_PASSWORD')
+
+        const accessToken = await issueToken({ id: user._id }, process.env.JWT_SECRET, Number(process.env.JWT_ACCESS_TOKEN_TIME))
+        const refreshToken = await issueToken({ id: user._id, accessToken }, process.env.JWT_SECRET, Number(process.env.JWT_REFRESH_TOKEN_TIME))
+       
+        const data = {
+            _id: user._id,
+            username: user.username,
+            segment: user.segment,
+        }
+        return response.success(200, { accessToken, refreshToken, data }, res)
     } catch (error) {
         return response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -20,7 +34,10 @@ exports.register = async (req, res) => {
     try {
         const { error } = registerValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
-        const user = await User.create(req.body)
+        const data = req.body
+        if (!validatePassword(data.password)) throw new ValidationError('INVALID_PASSWORD_COMPLEXITY')
+        const password = await encryptPassword(data.password)
+        const user = await User.create({ ...data, password })
         return response.success(200, { message: 'USER_HAS_REGISTERED', data: user }, res)
     } catch (error) {
         return response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

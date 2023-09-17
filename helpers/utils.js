@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const { TokenExpiredError } = require('./handlingErrors')
 
 module.exports = utils = {
@@ -37,5 +38,15 @@ module.exports = utils = {
                 reject(new TokenExpiredError(message))
             }
         })
+    },
+    encryptPassword: (plainPassword) => {
+        return bcrypt.hash(plainPassword, 10)
+    },
+    comparePassword: (plainPassword, encryptedPassword) => {
+        return bcrypt.compare(plainPassword, encryptedPassword)
+    },
+    validatePassword: (password) => {
+        let passwordComplexity = new RegExp('(?=.*[a-z])(?=.*[0-9])(?=.{7,})')
+        return passwordComplexity.test(password)
     },
 }

@@ -24,8 +24,13 @@ exports.success = (code = 200, data, res) => {
         code: successCode[code] || 'UNKNOWN_CODE',
         ...data
     }
-    res.status(code)
-    res.json(result)
+    try {
+        res.status(code)
+        res.json(result)
+    } catch (error) {
+        res.status(200)
+        res.json(result)
+    }
 }
 
 exports.failure = (code = 500, data, res, error) => {
@@ -33,8 +38,13 @@ exports.failure = (code = 500, data, res, error) => {
         code: failureCode[code] || 'UNKNOWN_CODE',
         ...data
     }
-    error && console.error(error)
-    res.status(code)
-    res.json(result)
+    try {
+        error && console.error(error)
+        res.status(code)
+        res.json(result)
+    } catch (error) {
+        res.status(500)
+        res.json(result)
+    }
 }
 
