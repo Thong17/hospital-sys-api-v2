@@ -25,3 +25,12 @@ exports.create = async (req, res) => {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
 }
+
+exports.list = async (req, res) => {
+    try {
+        const roles = await Role.find()
+        response.success(200, { data: roles }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
