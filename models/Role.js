@@ -46,4 +46,10 @@ const schema = mongoose.Schema(
     }
 )
 
+schema.pre('save', function (next) {
+    const name = Object.keys(this.name).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
+    this.tags = [...name, this.description.toLowerCase()]
+    next()
+  })
+
 module.exports = mongoose.model('Role', schema)
