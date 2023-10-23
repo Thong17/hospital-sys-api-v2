@@ -27,6 +27,19 @@ exports.create = async (req, res) => {
     }
 }
 
+exports._delete = async (req, res) => {
+    try {
+        const id = req.params.id
+        const reason = req.query.reason ?? ''
+        // TODO: add reason to audit log
+        console.log(reason)
+        const role = await Role.findByIdAndUpdate(id, { isDeleted: true })
+        response.success(200, { data: role, message: 'ROLE_HAS_CREATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
 exports.list = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1
