@@ -28,10 +28,6 @@ const schema = mongoose.Schema(
             type: Boolean,
             default: true
         },
-        isDisabled: {
-            type: Boolean,
-            default: false
-        },
         isDeleted: {
             type: Boolean,
             default: false

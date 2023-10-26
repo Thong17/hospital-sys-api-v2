@@ -1,6 +1,6 @@
 const response = require('../helpers/response')
 const Role = require('../models/Role')
-const { createRoleValidation } = require('../validations/roleValidation')
+const { createRoleValidation, updateRoleValidation } = require('../validations/roleValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors } = require('../helpers/utils')
 
@@ -35,6 +35,28 @@ exports._delete = async (req, res) => {
         console.log(reason)
         const role = await Role.findByIdAndUpdate(id, { isDeleted: true })
         response.success(200, { data: role, message: 'ROLE_HAS_CREATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.update = async (req, res) => {
+    try {
+        const { error } = updateRoleValidation.validate(req.body, { abortEarly: false })
+        if (error) throw new ValidationError(error.message, extractJoiErrors(error))
+        const id = req.params.id
+        const role = await Role.findByIdAndUpdate(id, req.body)
+        response.success(200, { data: role, message: 'ROLE_HAS_UPDATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.detail = async (req, res) => {
+    try {
+        const id = req.params.id
+        const role = await Role.findById(id)
+        response.success(200, { data: role }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

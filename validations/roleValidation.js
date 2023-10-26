@@ -16,4 +16,20 @@ const createRoleValidation = Joi.object({
         .required()
 })
 
-module.exports = { createRoleValidation }
+const updateRoleValidation = Joi.object({
+    name: Joi.object()
+        .required(),
+
+    description: Joi.string()
+        .allow(''),
+
+    status: Joi.boolean().optional(),
+
+    privilege: Joi.object()
+        .required(),
+
+    navigation: Joi.object()
+        .required()
+})
+
+module.exports = { createRoleValidation, updateRoleValidation }
