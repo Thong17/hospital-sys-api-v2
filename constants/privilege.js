@@ -20,7 +20,15 @@ exports.privilege = {
             delete: {
                 route: 'user',
                 action: 'delete'
-            }
+            },
+            approve: {
+                route: 'user',
+                action: 'approve'
+            },
+            reject: {
+                route: 'user',
+                action: 'reject'
+            },
         },
         role: {
             list: {
@@ -42,7 +50,15 @@ exports.privilege = {
             delete: {
                 route: 'role',
                 action: 'delete'
-            }
+            },
+            approve: {
+                route: 'role',
+                action: 'approve'
+            },
+            reject: {
+                route: 'role',
+                action: 'reject'
+            },
         },
     }
 }

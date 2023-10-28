@@ -4,10 +4,14 @@ const schema = mongoose.Schema(
     {
         name: {
             type: Object,
-            index: {
-                unique: true,
-            },
-            required: [true, 'NAME_IS_REQUIRED']
+            required: [true, 'NAME_IS_REQUIRED'],
+            validate: {
+                validator: async function(name) {
+                    const count = await this.model('Role').countDocuments({ name })
+                    return count === 0
+                },
+                message: 'NAME_IS_ALREADY_EXIST'
+            }
         },
         description: {
             type: String
