@@ -72,7 +72,7 @@ exports.list = async (req, res) => {
         
         let query = { isDeleted: false }
         const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
-        if (search.length > 0) {
+        if (search?.length > 0) {
             query['tags'] = {
                 $all: search
             }
