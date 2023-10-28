@@ -17,6 +17,14 @@ const schema = mongoose.Schema(
             type: String,
             required: [true, 'MODULE_IS_REQUIRED']
         },
+        type: {
+            type: String,
+            required: [true, 'TYPE_IS_REQUIRED']
+        },
+        createdBy: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User'
+        },
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }

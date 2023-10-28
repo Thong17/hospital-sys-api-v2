@@ -1,5 +1,6 @@
 const response = require('../helpers/response')
 const Role = require('../models/Role')
+const History = require('../models/History')
 const { createRoleValidation, updateRoleValidation } = require('../validations/roleValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors } = require('../helpers/utils')
@@ -33,7 +34,7 @@ exports._delete = async (req, res) => {
         const reason = req.query.reason ?? ''
         // TODO: add reason to audit log
         console.log(reason)
-        const role = await Role.findByIdAndUpdate(id, { isDeleted: true })
+        const role = await Role.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
         response.success(200, { data: role, message: 'ROLE_HAS_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -45,6 +46,7 @@ exports.update = async (req, res) => {
         const { error } = updateRoleValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
+        req.body.updatedBy = req.user._id
         const role = await Role.findByIdAndUpdate(id, req.body)
         response.success(200, { data: role, message: 'ROLE_HAS_UPDATED' }, res)
     } catch (error) {
@@ -89,8 +91,11 @@ exports.list = async (req, res) => {
 exports.history = async (req, res) => {
     try {
         const id = req.params.id
-        const role = await Role.findById(id)
-        response.success(200, { data: role }, res)
+        const histories = await History.find({ moduleId: id, module: 'ROLE' })
+            .populate('createdBy', 'username -_id')
+            .sort({ createdAt: 'desc' })
+            
+        response.success(200, { data: histories }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

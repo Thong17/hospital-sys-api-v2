@@ -1,4 +1,5 @@
 const response = require('../helpers/response')
+const User = require('../models/User')
 const { createHash, verifyToken } = require('../helpers/utils')
 const { MissingFieldError, BadRequestError, UnauthorizedError } = require('../helpers/handlingErrors')
 
@@ -20,23 +21,27 @@ exports.hash = (req, res, next) => {
 }
 
 exports.auth = async (req, res, next) => {
-    const accessToken = req.headers.authorization?.replace('Bearer ', '')
     try {
+        const accessToken = req.headers.authorization?.replace('Bearer ', '')
         if (!accessToken) throw new UnauthorizedError('UNAUTHORIZED')
-        await verifyToken(process.env.JWT_SECRET, accessToken)
+        const data = await verifyToken(process.env.JWT_SECRET, accessToken)
+        const user = await User.findById(data?.id)
+        req.user = user
         next()
     } catch (error) {
         return response.failure(error.code, { message: error.message }, res, error)
     }
 }
 
-exports.activity = (req, res, next, module) => {
+exports.activity = (req, res, next, module, type) => {
     try {
         const log = {
-            data: JSON.stringify(req.body),
             url: req.url,
+            type,
             module,
-            moduleId: req.params.id
+            moduleId: req.params.id,
+            createdBy: req.user._id,
+            data: JSON.stringify(req.body),
         }
         res.log = log
         next()
