@@ -85,3 +85,13 @@ exports.list = async (req, res) => {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
 }
+
+exports.history = async (req, res) => {
+    try {
+        const id = req.params.id
+        const role = await Role.findById(id)
+        response.success(200, { data: role }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}

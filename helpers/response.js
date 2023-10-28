@@ -1,3 +1,5 @@
+const History = require('../models/History')
+
 const successCode = {
     200: 'SUCCESS',
     201: 'CREATED',
@@ -20,11 +22,12 @@ const failureCode = {
 }
 
 exports.success = (code = 200, data, res) => {
-    const result = {
-        code: successCode[code] || 'UNKNOWN_CODE',
-        ...data
-    }
     try {
+        if (res.log) History.create(res.log)
+        const result = {
+            code: successCode[code] || 'UNKNOWN_CODE',
+            ...data
+        }
         res.status(code)
         res.json(result)
     } catch (error) {
@@ -34,11 +37,11 @@ exports.success = (code = 200, data, res) => {
 }
 
 exports.failure = (code = 500, data, res, error) => {
-    const result = {
-        code: failureCode[code] || 'UNKNOWN_CODE',
-        ...data
-    }
     try {
+        const result = {
+            code: failureCode[code] || 'UNKNOWN_CODE',
+            ...data
+        }
         error && console.error(error)
         res.status(code)
         res.json(result)

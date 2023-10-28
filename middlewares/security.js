@@ -30,4 +30,17 @@ exports.auth = async (req, res, next) => {
     }
 }
 
-
+exports.activity = (req, res, next, module) => {
+    try {
+        const log = {
+            data: JSON.stringify(req.body),
+            url: req.url,
+            module,
+            moduleId: req.params.id
+        }
+        res.log = log
+        next()
+    } catch (error) {
+        return response.failure(error.code, { message: error.message }, res, error)
+    }
+}
