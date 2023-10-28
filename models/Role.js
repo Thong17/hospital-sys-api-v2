@@ -48,8 +48,17 @@ const schema = mongoose.Schema(
 
 schema.pre('save', function (next) {
     const name = Object.keys(this.name).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
-    this.tags = [...name, this.description.toLowerCase()]
+    const description = Object.keys(this.description).map(key => this.description[key]?.toLowerCase()).filter(Boolean)
+    this.tags = [...name, ...description]
     next()
-  })
+})
+
+schema.pre('findOneAndUpdate', async function (next) {
+    const doc = await this.model.findById(this.getQuery()?._id)
+    const name = Object.keys(doc.name).map(key => doc.name[key]?.toLowerCase()).filter(Boolean)
+    const description = doc.description.split(' ').map(key => key.toLowerCase()).filter(Boolean)
+    this._update.tags = [...name, ...description]
+    next()
+})
 
 module.exports = mongoose.model('Role', schema)

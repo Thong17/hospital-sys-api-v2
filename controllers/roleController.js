@@ -71,10 +71,10 @@ exports.list = async (req, res) => {
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
-        const search = req.query.search?.replace(/ /g,'')
-        if (search) {
+        const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
+        if (search.length > 0) {
             query['tags'] = {
-                $regex: search
+                $all: search
             }
         }
 
