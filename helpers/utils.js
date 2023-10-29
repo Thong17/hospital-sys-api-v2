@@ -1,4 +1,6 @@
+const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
+const xlsx = require('xlsx')
 const bcrypt = require('bcrypt')
 const { TokenExpiredError } = require('./handlingErrors')
 
@@ -49,4 +51,45 @@ module.exports = utils = {
         let passwordComplexity = new RegExp('(?=.*[a-z])(?=.*[0-9])(?=.{7,})')
         return passwordComplexity.test(password)
     },
+    readExcel: (buffer) => {
+        return new Promise((resolve, reject) => {
+            try {
+                const workbook = xlsx.read(buffer, { type: 'buffer' })
+                const json = xlsx.utils.sheet_to_json(workbook.Sheets?.['WORKSHEET'] || {})
+                resolve(json)
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
+    isHexString: (value) => {
+        const hexRegex = /^[0-9a-fA-F]+$/
+        return hexRegex.test(value) && value.length > 20
+    },
+    snakeToCamel: (value) => {
+        return value.replace(/_([a-z])/g, function (_match, group) {
+            return group.toUpperCase();
+        }).replace(/^_/, '')
+    },
+    convertArrayMongo: (list) => {
+        if (!Array.isArray(list)) return []
+        return list?.map(data => {
+            let obj = {}
+            Object.keys(data)?.forEach(key => {
+                const lowerCaseKey = utils.snakeToCamel(key.toLowerCase())
+                const item = data[key]
+                if (mongoose.Types.ObjectId.isValid(item) && utils.isHexString(item)) return obj[lowerCaseKey] = mongoose.Types.ObjectId.createFromHexString(item)
+                const [main, sub] = key.split('.')
+                if (main && sub) return obj[main.toLowerCase()] = { ...obj[main.toLowerCase()], [sub.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())]: item }
+                try {
+                    const parsedJSON = JSON.parse(item)
+                    obj[lowerCaseKey] = parsedJSON
+                } catch (error) {
+                    obj[lowerCaseKey] = item
+                }
+            })
+
+            return obj
+        })
+    }
 }

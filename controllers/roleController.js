@@ -4,7 +4,7 @@ const Role = require('../models/Role')
 const History = require('../models/History')
 const { createRoleValidation, updateRoleValidation } = require('../validations/roleValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
-const { extractJoiErrors } = require('../helpers/utils')
+const { extractJoiErrors, readExcel, convertArrayMongo } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
 
 
@@ -105,6 +105,7 @@ exports.list = async (req, res) => {
 
 exports._export = async (req, res) => {
     try {
+        const languages = req.body.languages || []
         const name = req.query.name === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
 
@@ -131,6 +132,7 @@ exports._export = async (req, res) => {
                 key: 'id', 
                 width: 27,
             },
+            ...languages.map(item => ({ key: `name${item}`, width: 25 })),
             { 
                 key: 'status', 
                 width: 10,
@@ -138,25 +140,44 @@ exports._export = async (req, res) => {
             { 
                 key: 'description', 
                 width: 45,
-            }, 
+            },
+            { 
+                key: 'isDeleted', 
+                width: 15,
+            },
+            { 
+                key: 'createdBy', 
+                width: 15,
+            },
             { 
                 key: 'tags', 
                 width: 55,
             },
         ]
-        
-        const columnHeader = { no: 'NO', id: 'ID', status: 'STATUS', description: 'DESCRIPTION', tags: 'TAGS' }
 
-        const mapRowData = (_data) => {
-            return [{
-                no: 1,
-                id: 1,
-                status: 1,
-                description: 1,
-                tags: 1,
-            }]
+        let columnHeader = { no: 'NO', id: 'ID', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', tags: 'TAGS' }
+        languages.forEach(item => {
+            columnHeader[`name${item}`] = `NAME.${item.toUpperCase()}`
+        })
+
+        const mapRowData = (data) => {
+            return data?.map((item, index) => {
+                let obj = {
+                    no: index + 1,
+                    id: item._id.toString(),
+                    status: item.status,
+                    description: item.description,
+                    isDeleted: item.isDeleted,
+                    createdBy: item.createdBy?.username || 'N/A',
+                    tags: JSON.stringify(item.tags),
+                }
+                languages.forEach(lang => {
+                    obj[`name${lang}`] = item.name?.[lang] || 'N/A'
+                })
+                return obj
+            })
         }
-        const roles = await Role.find(query).sort({ name, createdAt })
+        const roles = await Role.find(query).sort({ name, createdAt }).populate('createdBy', 'username -_id')
         const file = await generateExcel(columns, columnHeader, mapRowData(roles))
 
         const now = moment().format('YYYY-MM-DD HH:mm:ss')
@@ -164,6 +185,18 @@ exports._export = async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=role_${now}.xlsx`)
         
         response.success(200, { file, name: `ROLE_${now}.xlsx` }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports._import = async (req, res) => {
+    try {
+        const file = req.file?.buffer
+        const data = await readExcel(file)
+        const convertedData = convertArrayMongo(data)
+        console.log(convertedData)
+        response.success(200, { data: {} }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

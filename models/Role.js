@@ -53,10 +53,9 @@ schema.pre('save', function (next) {
     next()
 })
 
-schema.pre('findOneAndUpdate', async function (next) {
-    const doc = await this.model.findById(this.getQuery()?._id)
-    const name = Object.keys(doc.name).map(key => doc.name[key]?.toLowerCase()).filter(Boolean)
-    const description = doc.description.split(' ').map(key => key.toLowerCase()).filter(Boolean)
+schema.pre('findOneAndUpdate', function (next) {
+    const name = Object.keys(this._update.name).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
+    const description = this._update.description?.split(' ').map(key => key.toLowerCase()).filter(Boolean)
     this._update.tags = [...name, ...description]
     next()
 })

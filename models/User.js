@@ -51,7 +51,7 @@ const schema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'User'
     },
-    isDisabled: {
+    status: {
         type: Boolean,
         default: false
     },
