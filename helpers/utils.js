@@ -77,7 +77,8 @@ module.exports = utils = {
             let obj = {}
             Object.keys(data)?.forEach(key => {
                 const lowerCaseKey = utils.snakeToCamel(key.toLowerCase())
-                const item = data[key]
+                let item = data[key]
+                if (item === 'N/A') item = ''
                 if (mongoose.Types.ObjectId.isValid(item) && utils.isHexString(item)) return obj[lowerCaseKey] = mongoose.Types.ObjectId.createFromHexString(item)
                 const [main, sub] = key.split('.')
                 if (main && sub) return obj[main.toLowerCase()] = { ...obj[main.toLowerCase()], [sub.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())]: item }

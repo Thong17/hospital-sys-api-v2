@@ -153,9 +153,17 @@ exports._export = async (req, res) => {
                 key: 'tags', 
                 width: 55,
             },
+            { 
+                key: 'navigation', 
+                width: 55,
+            },
+            { 
+                key: 'privilege', 
+                width: 55,
+            },
         ]
 
-        let columnHeader = { no: 'NO', id: 'ID', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', tags: 'TAGS' }
+        let columnHeader = { no: 'NO', id: 'ID', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', tags: 'TAGS', navigation: 'NAVIGATION', privilege: 'PRIVILEGE' }
         languages.forEach(item => {
             columnHeader[`name${item}`] = `NAME.${item.toUpperCase()}`
         })
@@ -170,6 +178,8 @@ exports._export = async (req, res) => {
                     isDeleted: item.isDeleted,
                     createdBy: item.createdBy?.username || 'N/A',
                     tags: JSON.stringify(item.tags),
+                    navigation: JSON.stringify(item.navigation),
+                    privilege: JSON.stringify(item.privilege),
                 }
                 languages.forEach(lang => {
                     obj[`name${lang}`] = item.name?.[lang] || 'N/A'
@@ -194,9 +204,25 @@ exports._import = async (req, res) => {
     try {
         const file = req.file?.buffer
         const data = await readExcel(file)
-        const convertedData = convertArrayMongo(data)
-        console.log(convertedData)
-        response.success(200, { data: {} }, res)
+        const convertedList = convertArrayMongo(data)
+        let mappedData = convertedList.map(item => ({ data: item }))
+        for (let i = 0; i < convertedList.length; i++) {
+            const body = convertedList[i]
+            const role = new Role(body)
+            await role.validate()
+                .then(_data => {
+                    mappedData[i]['result'] = {
+                        status: 'SUCCESS'
+                    }
+                })
+                .catch(error => {
+                    mappedData[i]['result'] = {
+                        status: 'FAILED',
+                        error: error?.errors
+                    }
+                })
+        }
+        response.success(200, { data: mappedData }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
