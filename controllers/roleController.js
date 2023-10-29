@@ -1,9 +1,11 @@
+const moment = require('moment')
 const response = require('../helpers/response')
 const Role = require('../models/Role')
 const History = require('../models/History')
 const { createRoleValidation, updateRoleValidation } = require('../validations/roleValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors } = require('../helpers/utils')
+const generateExcel = require('../configs/excel')
 
 
 exports.getPermission = (_, res) => {
@@ -64,6 +66,19 @@ exports.detail = async (req, res) => {
     }
 }
 
+exports.history = async (req, res) => {
+    try {
+        const id = req.params.id
+        const histories = await History.find({ moduleId: id, module: 'ROLE' })
+            .populate('createdBy', 'username -_id')
+            .sort({ createdAt: 'desc' })
+            
+        response.success(200, { data: histories }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
 exports.list = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1
@@ -88,14 +103,67 @@ exports.list = async (req, res) => {
     }
 }
 
-exports.history = async (req, res) => {
+exports._export = async (req, res) => {
     try {
-        const id = req.params.id
-        const histories = await History.find({ moduleId: id, module: 'ROLE' })
-            .populate('createdBy', 'username -_id')
-            .sort({ createdAt: 'desc' })
-            
-        response.success(200, { data: histories }, res)
+        const name = req.query.name === 'asc' ? 1 : -1
+        const createdAt = req.query.createdAt === 'asc' ? 1 : -1
+
+        let query = { isDeleted: false }
+        const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
+        if (search?.length > 0) {
+            query['tags'] = {
+                $all: search
+            }
+        }
+
+        const columns = [
+            { 
+                key: 'no', 
+                width: 5,  
+                style: {
+                    alignment: {
+                        vertical:'middle',
+                        horizontal:'center'
+                    }
+                }
+            },
+            { 
+                key: 'id', 
+                width: 27,
+            },
+            { 
+                key: 'status', 
+                width: 10,
+            },
+            { 
+                key: 'description', 
+                width: 45,
+            }, 
+            { 
+                key: 'tags', 
+                width: 55,
+            },
+        ]
+        
+        const columnHeader = { no: 'NO', id: 'ID', status: 'STATUS', description: 'DESCRIPTION', tags: 'TAGS' }
+
+        const mapRowData = (_data) => {
+            return [{
+                no: 1,
+                id: 1,
+                status: 1,
+                description: 1,
+                tags: 1,
+            }]
+        }
+        const roles = await Role.find(query).sort({ name, createdAt })
+        const file = await generateExcel(columns, columnHeader, mapRowData(roles))
+
+        const now = moment().format('YYYY-MM-DD HH:mm:ss')
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader('Content-Disposition', `attachment; filename=role_${now}.xlsx`)
+        
+        response.success(200, { file, name: `ROLE_${now}.xlsx` }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

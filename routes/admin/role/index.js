@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const { activity } = require('../../../middlewares/security')
-const { getPermission, getPrePermission, create, _delete, list, detail, update, history } = require('../../../controllers/roleController')
+const { getPermission, getPrePermission, create, _delete, list, detail, update, history, _export } = require('../../../controllers/roleController')
 
 
 router.get('/getPermission', (req, res) => {
@@ -33,6 +33,10 @@ router.get('/history/:id', (req, res) => {
 
 router.get('/list', (req, res) => {
     list(req, res)
+})
+
+router.post('/export', (req, res) => {
+    _export(req, res)
 })
 
 module.exports = router
