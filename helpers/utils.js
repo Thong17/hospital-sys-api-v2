@@ -90,6 +90,7 @@ module.exports = utils = {
                 }
             })
             if (!obj.id) obj.id = new mongoose.Types.ObjectId()
+            delete obj.createdBy
             return obj
         })
     }

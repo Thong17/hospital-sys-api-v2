@@ -24,7 +24,7 @@ exports.create = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const role = new Role(req.body)
         await role.save()
-        response.success(200, { data: role, message: 'ROLE_HAS_CREATED' }, res)
+        response.success(200, { data: role, message: 'ROLE_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -37,7 +37,7 @@ exports._delete = async (req, res) => {
         // TODO: add reason to audit log
         console.log(reason)
         const role = await Role.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
-        response.success(200, { data: role, message: 'ROLE_HAS_CREATED' }, res)
+        response.success(200, { data: role, message: 'ROLE_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -50,7 +50,7 @@ exports.update = async (req, res) => {
         const id = req.params.id
         req.body.updatedBy = req.user._id
         const role = await Role.findByIdAndUpdate(id, req.body)
-        response.success(200, { data: role, message: 'ROLE_HAS_UPDATED' }, res)
+        response.success(200, { data: role, message: 'ROLE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -223,6 +223,16 @@ exports._validate = async (req, res) => {
                 })
         }
         response.success(200, { data: mappedData }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports._import = async (req, res) => {
+    try {
+        const data = req.body
+        const result = await Role.create(data)
+        response.success(200, { data: { data: result }, message: 'ROLE_HAS_BEEN_IMPORTED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

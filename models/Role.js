@@ -48,14 +48,14 @@ const schema = mongoose.Schema(
 
 schema.pre('save', function (next) {
     const name = Object.keys(this.name).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
-    const description = Object.keys(this.description).map(key => this.description[key]?.toLowerCase()).filter(Boolean)
+    const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     this.tags = [...name, ...description]
     next()
 })
 
 schema.pre('findOneAndUpdate', function (next) {
-    const name = Object.keys(this._update.name).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
-    const description = this._update.description?.split(' ').map(key => key.toLowerCase()).filter(Boolean)
+    const name = Object.keys(this._update.name || {}).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
+    const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     this._update.tags = [...name, ...description]
     next()
 })
