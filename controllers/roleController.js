@@ -200,7 +200,7 @@ exports._export = async (req, res) => {
     }
 }
 
-exports._import = async (req, res) => {
+exports._validate = async (req, res) => {
     try {
         const file = req.file?.buffer
         const data = await readExcel(file)

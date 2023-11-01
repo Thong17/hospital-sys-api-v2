@@ -89,7 +89,7 @@ module.exports = utils = {
                     obj[lowerCaseKey] = item
                 }
             })
-
+            if (!obj.id) obj.id = new mongoose.Types.ObjectId()
             return obj
         })
     }

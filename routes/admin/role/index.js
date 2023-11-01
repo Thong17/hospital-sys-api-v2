@@ -1,7 +1,7 @@
 const { memoryStorage } = require('../../../configs/multer')
 const router = require('express').Router()
 const { activity } = require('../../../middlewares/security')
-const { getPermission, getPrePermission, create, _delete, list, detail, update, history, _export, _import } = require('../../../controllers/roleController')
+const { getPermission, getPrePermission, create, _delete, list, detail, update, history, _export, _validate } = require('../../../controllers/roleController')
 
 
 router.get('/getPermission', (req, res) => {
@@ -40,8 +40,8 @@ router.post('/export', (req, res) => {
     _export(req, res)
 })
 
-router.post('/import', memoryStorage.single('excel'), (req, res) => {
-    _import(req, res)
+router.post('/validate', memoryStorage.single('excel'), (req, res) => {
+    _validate(req, res)
 })
 
 
