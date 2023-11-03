@@ -28,6 +28,10 @@ const schema = mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'User'
         },
+        updatedBy: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User'
+        },
         status: {
             type: Boolean,
             default: true

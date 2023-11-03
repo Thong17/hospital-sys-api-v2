@@ -1,31 +1,23 @@
 const moment = require('moment')
 const response = require('../helpers/response')
-const Role = require('../models/Role')
+const User = require('../models/User')
 const History = require('../models/History')
-const { createRoleValidation, updateRoleValidation } = require('../validations/roleValidation')
+const { createUserValidation, updateUserValidation } = require('../validations/userValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
-const { extractJoiErrors, readExcel, convertArrayMongo } = require('../helpers/utils')
+const { extractJoiErrors, readExcel, convertArrayMongo, encryptPassword } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
 
 
-exports.getPermission = (_, res) => {
-    const { privilege, navigation } = require('../constants/privilege')
-    response.success(200, { privilege, navigation }, res)
-}
-
-exports.getPrePermission = (_, res) => {
-    const { preMenu, preRole } = require('../constants/privilege')
-    response.success(200, { preMenu, preRole }, res)
-}
-
 exports.create = async (req, res) => {
     try {
-        const { error } = createRoleValidation.validate(req.body, { abortEarly: false })
+        const { error } = createUserValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
-        const role = new Role(req.body)
-        role.createdBy = req.user?._id
-        await role.save()
-        response.success(200, { data: role, message: 'ROLE_HAS_BEEN_CREATED' }, res)
+        const body = req.body
+        const user = new User(body)
+        user.password = await encryptPassword(body.password)
+        user.createdBy = req.user?._id
+        await user.save()
+        response.success(200, { data: user, message: 'USER_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -37,8 +29,8 @@ exports._delete = async (req, res) => {
         const reason = req.query.reason ?? ''
         // TODO: add reason to audit log
         console.log(reason)
-        const role = await Role.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
-        response.success(200, { data: role, message: 'ROLE_HAS_BEEN_DELETED' }, res)
+        const user = await User.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
+        response.success(200, { data: user, message: 'USER_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -46,13 +38,15 @@ exports._delete = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
-        const { error } = updateRoleValidation.validate(req.body, { abortEarly: false })
+        const { error } = updateUserValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
         body.updatedBy = req.user._id
-        const role = await Role.findByIdAndUpdate(id, body)
-        response.success(200, { data: role, message: 'ROLE_HAS_BEEN_UPDATED' }, res)
+        if (!body.password) delete body.password
+        else body.password = await encryptPassword(body.password)
+        const user = await User.findByIdAndUpdate(id, body)
+        response.success(200, { data: user, message: 'USER_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -61,10 +55,11 @@ exports.update = async (req, res) => {
 exports.detail = async (req, res) => {
     try {
         const id = req.params.id
-        const role = await Role.findById(id)
-            .populate('createdBy', 'username')
-            .populate('updatedBy', 'username')
-        response.success(200, { data: role }, res)
+        const user = await User.findById(id)
+            .populate('role', 'name privilege navigation')
+            .populate('createdBy', 'username -_id')
+            .populate('updatedBy', 'username -_id')
+        response.success(200, { data: user }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -73,7 +68,7 @@ exports.detail = async (req, res) => {
 exports.history = async (req, res) => {
     try {
         const id = req.params.id
-        const histories = await History.find({ moduleId: id, module: 'ROLE' })
+        const histories = await History.find({ moduleId: id, module: 'USER' })
             .populate('createdBy', 'username -_id')
             .sort({ createdAt: 'desc' })
             
@@ -85,10 +80,10 @@ exports.history = async (req, res) => {
 
 exports.list = async (req, res) => {
     try {
-        const page = parseInt(req.query.page ?? 1)
-        const limit = parseInt(req.query.limit ?? 5)
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 5
         const skip = page - 1
-        const name = req.query.name === 'asc' ? 1 : -1
+        const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
@@ -99,9 +94,14 @@ exports.list = async (req, res) => {
             }
         }
 
-        const roles = await Role.find(query).skip((skip) * limit).limit(limit).sort({ name, createdAt })
-        const totalRole = await Role.count({ isDeleted: false })
-        response.success(200, { data: roles, metaData: { skip, limit, total: totalRole } }, res)
+        const users = await User.find(query)
+            .skip((skip) * limit)
+            .limit(limit)
+            .sort({ username, createdAt })
+            .populate('role', 'name -_id')
+
+        const totalUser = await User.count()
+        response.success(200, { data: users, metaData: { skip, limit, total: totalUser } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -136,7 +136,23 @@ exports._export = async (req, res) => {
                 key: 'id', 
                 width: 27,
             },
-            ...languages.map(item => ({ key: `name${item}`, width: 25 })),
+            { 
+                key: 'username', 
+                width: 27,
+            },
+            { 
+                key: 'segment', 
+                width: 27,
+            },
+            { 
+                key: 'email', 
+                width: 27,
+            },
+            { 
+                key: 'contact', 
+                width: 27,
+            },
+            ...languages.map(item => ({ key: `role${item}`, width: 25 })),
             { 
                 key: 'status', 
                 width: 10,
@@ -154,22 +170,26 @@ exports._export = async (req, res) => {
                 width: 15,
             },
             { 
+                key: 'updatedBy', 
+                width: 15,
+            },
+            { 
+                key: 'createdAt', 
+                width: 15,
+            },
+            { 
+                key: 'updatedAt', 
+                width: 15,
+            },
+            { 
                 key: 'tags', 
                 width: 55,
-            },
-            { 
-                key: 'navigation', 
-                width: 55,
-            },
-            { 
-                key: 'privilege', 
-                width: 55,
-            },
+            }
         ]
 
-        let columnHeader = { no: 'NO', id: 'ID', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', tags: 'TAGS', navigation: 'NAVIGATION', privilege: 'PRIVILEGE' }
+        let columnHeader = { no: 'NO', id: 'ID', username: 'USERNAME', segment: 'SEGMENT', email: 'EMAIL', contact: 'CONTACT', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', updatedBy: 'UPDATED_BY', createdAt: 'CREATED_BY', updatedAt: 'UPDATED_AT', tags: 'TAGS' }
         languages.forEach(item => {
-            columnHeader[`name${item}`] = `NAME.${item.toUpperCase()}`
+            columnHeader[`role${item}`] = `ROLE.${item.toUpperCase()}`
         })
 
         const mapRowData = (data) => {
@@ -177,28 +197,36 @@ exports._export = async (req, res) => {
                 let obj = {
                     no: index + 1,
                     id: item._id.toString(),
+                    username: item.username,
+                    segment: item.segment,
+                    email: item.email,
+                    contact: item.contact,
                     status: item.status,
                     description: item.description,
                     isDeleted: item.isDeleted,
                     createdBy: item.createdBy?.username || 'N/A',
+                    updatedBy: item.updatedBy?.username || 'N/A',
+                    createdAt: moment(item.createdAt).format('DD MMM, YYYY h:mm:ss A'),
+                    updatedAt: moment(item.updatedAt).format('DD MMM, YYYY h:mm:ss A'),
                     tags: JSON.stringify(item.tags),
-                    navigation: JSON.stringify(item.navigation),
-                    privilege: JSON.stringify(item.privilege),
                 }
                 languages.forEach(lang => {
-                    obj[`name${lang}`] = item.name?.[lang] || 'N/A'
+                    obj[`role${lang}`] = item.role?.name?.[lang] || 'N/A'
                 })
                 return obj
             })
         }
-        const roles = await Role.find(query).sort({ name, createdAt }).populate('createdBy', 'username -_id')
-        const file = await generateExcel(columns, columnHeader, mapRowData(roles))
+        const users = await User.find(query).sort({ name, createdAt })
+            .populate('createdBy', 'username -_id')
+            .populate('updatedBy', 'username -_id')
+            .populate('role', 'name -_id')
+        const file = await generateExcel(columns, columnHeader, mapRowData(users))
 
         const now = moment().format('YYYY-MM-DD HH:mm:ss')
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        res.setHeader('Content-Disposition', `attachment; filename=role_${now}.xlsx`)
+        res.setHeader('Content-Disposition', `attachment; filename=user_${now}.xlsx`)
         
-        response.success(200, { file, name: `ROLE_${now}.xlsx` }, res)
+        response.success(200, { file, name: `USER_${now}.xlsx` }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -212,8 +240,8 @@ exports._validate = async (req, res) => {
         let mappedData = convertedList.map(item => ({ data: item }))
         for (let i = 0; i < convertedList.length; i++) {
             const body = convertedList[i]
-            const role = new Role(body)
-            await role.validate()
+            const user = new User(body)
+            await user.validate()
                 .then(_data => {
                     mappedData[i]['result'] = {
                         status: 'SUCCESS'
@@ -235,8 +263,8 @@ exports._validate = async (req, res) => {
 exports._import = async (req, res) => {
     try {
         const data = req.body
-        const result = await Role.create(data)
-        response.success(200, { data: { data: result }, message: 'ROLE_HAS_BEEN_IMPORTED' }, res)
+        const result = await User.create(data)
+        response.success(200, { data: { data: result }, message: 'USER_HAS_BEEN_IMPORTED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

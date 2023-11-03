@@ -26,6 +26,7 @@ exports.auth = async (req, res, next) => {
         if (!accessToken) throw new UnauthorizedError('UNAUTHORIZED')
         const data = await verifyToken(process.env.JWT_SECRET, accessToken)
         const user = await User.findById(data?.id)
+        if (!user) throw new UnauthorizedError('UNAUTHORIZED')
         req.user = user
         next()
     } catch (error) {
@@ -40,7 +41,7 @@ exports.activity = (req, res, next, module, type) => {
             type,
             module,
             moduleId: req.params.id,
-            createdBy: req.user._id,
+            createdBy: req.user?._id,
             data: JSON.stringify(req.body),
         }
         res.log = log

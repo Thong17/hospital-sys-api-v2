@@ -23,7 +23,11 @@ const failureCode = {
 
 exports.success = (code = 200, data, res) => {
     try {
-        if (res.log) History.create(res.log)
+        if (res.log) {
+            if (!res.log.moduleId) res.log.moduleId = data?.data?._id
+            History.create(res.log)
+        }
+        
         const result = {
             code: successCode[code] || 'UNKNOWN_CODE',
             ...data
@@ -32,7 +36,7 @@ exports.success = (code = 200, data, res) => {
         res.json(result)
     } catch (error) {
         res.status(200)
-        res.json(result)
+        res.json(error)
     }
 }
 
@@ -46,8 +50,9 @@ exports.failure = (code = 500, data, res, error) => {
         res.status(code)
         res.json(result)
     } catch (error) {
+        // TODO: Handle Invalid status code 11000 when duplicate
         res.status(500)
-        res.json(result)
+        res.json(error)
     }
 }
 
