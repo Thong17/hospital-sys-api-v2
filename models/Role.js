@@ -33,7 +33,7 @@ const schema = mongoose.Schema(
 )
 
 schema.pre('save', function (next) {
-    const name = Object.keys(this.name).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
+    const name = Object.keys(this.name || {}).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     this.tags = [...name, ...description]
     next()
