@@ -22,23 +22,13 @@ const schema = new mongoose.Schema(
         contact: {
             type: String,
         },
-        specialty: {
-            type: Array,
-            default: []
-        },
         dateOfBirth: {
-            type: Date
-        },
-        startTime: {
-            type: Date
-        },
-        endTime: {
             type: Date
         },
         description: {
             type: String
         },
-        rate: {
+        point: {
             type: Number,
             default: 0
         },
@@ -67,4 +57,4 @@ schema.pre('findOneAndUpdate', function (next) {
     next()
 })
 
-module.exports = mongoose.model('Doctor', schema)
+module.exports = mongoose.model('Patient', schema)

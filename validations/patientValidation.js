@@ -1,6 +1,6 @@
 const Joi = require('joi')
 
-const createDoctorValidation = Joi.object({
+const createPatientValidation = Joi.object({
     lastName: Joi.string()
         .alphanum()
         .min(2)
@@ -45,7 +45,7 @@ const createDoctorValidation = Joi.object({
         .allow(''),
 })
 
-const updateDoctorValidation = Joi.object({
+const updatePatientValidation = Joi.object({
     lastName: Joi.string()
         .alphanum()
         .min(2)
@@ -90,4 +90,4 @@ const updateDoctorValidation = Joi.object({
         .allow(''),
 })
 
-module.exports = { createDoctorValidation, updateDoctorValidation }
+module.exports = { createPatientValidation, updatePatientValidation }

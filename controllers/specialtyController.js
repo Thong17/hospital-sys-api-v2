@@ -12,7 +12,7 @@ exports.create = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
         const specialty = new Specialty(body)
-        specialty.createdBy = req.specialty?._id
+        specialty.createdBy = req.user?._id
         await specialty.save()
         response.success(200, { data: specialty, message: 'SPECIALTY_HAS_BEEN_CREATED' }, res)
     } catch (error) {
@@ -25,7 +25,7 @@ exports._delete = async (req, res) => {
         const id = req.params.id
         const reason = req.query.reason ?? ''
         if (res.log) res.log.description = reason
-        const specialty = await Specialty.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.specialty._id })
+        const specialty = await Specialty.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
         response.success(200, { data: specialty, message: 'SPECIALTY_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

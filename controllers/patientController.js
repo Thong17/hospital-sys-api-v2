@@ -1,8 +1,8 @@
 const moment = require('moment')
 const response = require('../helpers/response')
-const Doctor = require('../models/Doctor')
+const Patient = require('../models/Patient')
 const History = require('../models/History')
-const { createDoctorValidation, updateDoctorValidation } = require('../validations/doctorValidation')
+const { createPatientValidation, updatePatientValidation } = require('../validations/patientValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, readExcel, convertArrayMongo } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
@@ -10,13 +10,13 @@ const generateExcel = require('../configs/excel')
 
 exports.create = async (req, res) => {
     try {
-        const { error } = createDoctorValidation.validate(req.body, { abortEarly: false })
+        const { error } = createPatientValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
-        const doctor = new Doctor(body)
-        doctor.createdBy = req.user?._id
-        await doctor.save()
-        response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_CREATED' }, res)
+        const patient = new Patient(body)
+        patient.createdBy = req.user?._id
+        await patient.save()
+        response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -27,8 +27,8 @@ exports._delete = async (req, res) => {
         const id = req.params.id
         const reason = req.query.reason ?? ''
         if (res.log) res.log.description = reason
-        const doctor = await Doctor.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user?._id })
-        response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_DELETED' }, res)
+        const patient = await Patient.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user?._id })
+        response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -36,13 +36,13 @@ exports._delete = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
-        const { error } = updateDoctorValidation.validate(req.body, { abortEarly: false })
+        const { error } = updatePatientValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
         body.updatedBy = req.user?._id
-        const doctor = await Doctor.findByIdAndUpdate(id, body)
-        response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_UPDATED' }, res)
+        const patient = await Patient.findByIdAndUpdate(id, body)
+        response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -51,10 +51,10 @@ exports.update = async (req, res) => {
 exports.detail = async (req, res) => {
     try {
         const id = req.params.id
-        const doctor = await Doctor.findById(id)
+        const patient = await Patient.findById(id)
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
-        response.success(200, { data: doctor }, res)
+        response.success(200, { data: patient }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -63,7 +63,7 @@ exports.detail = async (req, res) => {
 exports.history = async (req, res) => {
     try {
         const id = req.params.id
-        const histories = await History.find({ moduleId: id, module: 'DOCTOR' })
+        const histories = await History.find({ moduleId: id, module: 'PATIENT' })
             .populate('createdBy', 'username -_id')
             .sort({ createdAt: 'desc' })
             
@@ -90,13 +90,13 @@ exports.list = async (req, res) => {
             }
         }
 
-        const doctors = await Doctor.find(query)
+        const patients = await Patient.find(query)
             .skip((skip) * limit)
             .limit(limit)
             .sort({ lastName, firstName, createdAt })
 
-        const totalDoctor = await Doctor.count()
-        response.success(200, { data: doctors, metaData: { skip, limit, total: totalDoctor } }, res)
+        const totalPatient = await Patient.count()
+        response.success(200, { data: patients, metaData: { skip, limit, total: totalPatient } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -219,17 +219,17 @@ exports._export = async (req, res) => {
                 return obj
             })
         }
-        const doctors = await Doctor.find(query).sort({ name, createdAt })
+        const patients = await Patient.find(query).sort({ name, createdAt })
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
             .populate('role', 'name -_id')
-        const file = await generateExcel(columns, columnHeader, mapRowData(doctors))
+        const file = await generateExcel(columns, columnHeader, mapRowData(patients))
 
         const now = moment().format('YYYY-MM-DD HH:mm:ss')
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        res.setHeader('Content-Disposition', `attachment; filename=doctor_${now}.xlsx`)
+        res.setHeader('Content-Disposition', `attachment; filename=patient_${now}.xlsx`)
         
-        response.success(200, { file, name: `DOCTOR_${now}.xlsx` }, res)
+        response.success(200, { file, name: `PATIENT_${now}.xlsx` }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -243,8 +243,8 @@ exports._validate = async (req, res) => {
         let mappedData = convertedList.map(item => ({ data: item }))
         for (let i = 0; i < convertedList.length; i++) {
             const body = convertedList[i]
-            const doctor = new Doctor(body)
-            await doctor.validate()
+            const patient = new Patient(body)
+            await patient.validate()
                 .then(_data => {
                     mappedData[i]['result'] = {
                         status: 'SUCCESS'
@@ -266,8 +266,8 @@ exports._validate = async (req, res) => {
 exports._import = async (req, res) => {
     try {
         const data = req.body
-        const result = await Doctor.create(data)
-        response.success(200, { data: { data: result }, message: 'DOCTOR_HAS_BEEN_IMPORTED' }, res)
+        const result = await Patient.create(data)
+        response.success(200, { data: { data: result }, message: 'PATIENT_HAS_BEEN_IMPORTED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

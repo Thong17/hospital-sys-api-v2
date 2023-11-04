@@ -35,10 +35,6 @@ const schema = new mongoose.Schema(
         },
         email: {
             type: String,
-            required: [true, 'EMAIL_IS_REQUIRED'],
-            index: {
-                unique: true
-            }
         },
         contact: {
             type: String,
