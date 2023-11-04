@@ -60,6 +60,8 @@ const updateDoctorValidation = Joi.object({
 
     specialty: Joi.array(),
 
+    shift: Joi.array(),
+
     email: Joi.string()
         .email({ tlds: { allow: false } })
         .optional()

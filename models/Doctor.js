@@ -30,10 +30,14 @@ const schema = new mongoose.Schema(
             type: Date
         },
         startTime: {
-            type: Date
+            type: String
         },
         endTime: {
-            type: Date
+            type: String
+        },
+        shift: {
+            type: Array,
+            default: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
         },
         description: {
             type: String
