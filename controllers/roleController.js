@@ -36,7 +36,7 @@ exports._delete = async (req, res) => {
         const id = req.params.id
         const reason = req.query.reason ?? ''
         if (res.log) res.log.description = reason
-        const role = await Role.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
+        const role = await Role.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user?._id })
         response.success(200, { data: role, message: 'ROLE_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -49,7 +49,7 @@ exports.update = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
-        body.updatedBy = req.user._id
+        body.updatedBy = req.user?._id
         const role = await Role.findByIdAndUpdate(id, body)
         response.success(200, { data: role, message: 'ROLE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
