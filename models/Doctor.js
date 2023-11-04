@@ -23,6 +23,12 @@ const schema = new mongoose.Schema(
         dateOfBirth: {
             type: Date
         },
+        startTime: {
+            type: Date
+        },
+        endTime: {
+            type: Date
+        },
         description: {
             type: String
         },

@@ -21,6 +21,10 @@ const schema = mongoose.Schema(
             type: String,
             required: [true, 'TYPE_IS_REQUIRED']
         },
+        description: {
+            type: String,
+            default: ''
+        },
         createdBy: {
             type: mongoose.Schema.ObjectId,
             ref: 'User'

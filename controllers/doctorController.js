@@ -26,8 +26,7 @@ exports._delete = async (req, res) => {
     try {
         const id = req.params.id
         const reason = req.query.reason ?? ''
-        // TODO: add reason to audit log
-        console.log(reason)
+        if (res.log) res.log.description = reason
         const doctor = await Doctor.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.doctor._id })
         response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_DELETED' }, res)
     } catch (error) {
