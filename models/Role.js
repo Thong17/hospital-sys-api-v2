@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const initialObject = require('./index')
 
 const schema = mongoose.Schema(
     {
@@ -24,26 +25,7 @@ const schema = mongoose.Schema(
             type: Object,
             required: [true, 'NAVIGATION_IS_REQUIRED']
         },
-        createdBy: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User'
-        },
-        updatedBy: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User'
-        },
-        status: {
-            type: Boolean,
-            default: true
-        },
-        isDeleted: {
-            type: Boolean,
-            default: false
-        },
-        tags: {
-            type: Array,
-            default: []
-        },
+        ...initialObject
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Role = require('./Role')
+const initialObject = require('./index')
 
 const schema = new mongoose.Schema(
     {
@@ -60,29 +61,10 @@ const schema = new mongoose.Schema(
                 message: 'ROLE_IS_NOT_EXIST'
             },
         },
-        createdBy: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User'
-        },
-        updatedBy: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User'
-        },
-        status: {
-            type: Boolean,
-            default: false
-        },
         description: {
             type: String
         },
-        isDeleted: {
-            type: Boolean,
-            default: false
-        },
-        tags: {
-            type: Array,
-            default: []
-        },
+        ...initialObject
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
