@@ -4,7 +4,7 @@ const Doctor = require('../models/Doctor')
 const History = require('../models/History')
 const { createDoctorValidation, updateDoctorValidation } = require('../validations/doctorValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
-const { extractJoiErrors, readExcel, convertArrayMongo, encryptPassword } = require('../helpers/utils')
+const { extractJoiErrors, readExcel, convertArrayMongo } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
 
 
@@ -14,7 +14,6 @@ exports.create = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
         const doctor = new Doctor(body)
-        doctor.password = await encryptPassword(body.password)
         doctor.createdBy = req.doctor?._id
         await doctor.save()
         response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_CREATED' }, res)
@@ -43,8 +42,6 @@ exports.update = async (req, res) => {
         const id = req.params.id
         const body = req.body
         body.updatedBy = req.doctor._id
-        if (!body.password) delete body.password
-        else body.password = await encryptPassword(body.password)
         const doctor = await Doctor.findByIdAndUpdate(id, body)
         response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
@@ -56,7 +53,6 @@ exports.detail = async (req, res) => {
     try {
         const id = req.params.id
         const doctor = await Doctor.findById(id)
-            .populate('role', 'name privilege navigation')
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
         response.success(200, { data: doctor }, res)
@@ -99,7 +95,6 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ lastName, firstName, createdAt })
-            .populate('role', 'name -_id')
 
         const totalDoctor = await Doctor.count()
         response.success(200, { data: doctors, metaData: { skip, limit, total: totalDoctor } }, res)
