@@ -50,18 +50,16 @@ const schema = new mongoose.Schema(
 schema.pre('save', function (next) {
     const name = Object.keys(this.name || {}).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
     const cost = this.cost?.toString()
-    const currency = this.currency?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...name, ...currency, ...description, cost]
+    this.tags = [...name, ...description, cost]
     next()
 })
 
 schema.pre('findOneAndUpdate', function (next) {
     const name = Object.keys(this._update.name || {}).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
     const cost = this._update.cost?.toString()
-    const currency = this._update.currency?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...name, ...cost, ...currency, ...description]
+    this._update.tags = [...name, ...currency, ...description]
     next()
 })
 

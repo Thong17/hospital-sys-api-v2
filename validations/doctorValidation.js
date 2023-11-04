@@ -19,6 +19,14 @@ const createDoctorValidation = Joi.object({
         .optional()
         .allow(''),
 
+    startTime: Joi.string()
+        .optional()
+        .allow(''),
+
+    endTime: Joi.string()
+        .optional()
+        .allow(''),
+
     gender: Joi.string()
         .required(),
 
@@ -44,6 +52,14 @@ const updateDoctorValidation = Joi.object({
     specialty: Joi.array(),
 
     dateOfBirth: Joi.string()
+        .optional()
+        .allow(''),
+        
+    startTime: Joi.string()
+        .optional()
+        .allow(''),
+
+    endTime: Joi.string()
         .optional()
         .allow(''),
 

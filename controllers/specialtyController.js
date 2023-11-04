@@ -34,8 +34,8 @@ exports._delete = async (req, res) => {
 
 exports.list = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1
-        const limit = parseInt(req.query.limit) || 5
+        const page = parseInt(req.query.page ?? 1)
+        const limit = parseInt(req.query.limit ?? 5)
         const skip = page - 1
         const lastName = req.query.lastName === 'asc' ? 1 : -1
         const firstName = req.query.firstName === 'asc' ? 1 : -1
@@ -49,13 +49,14 @@ exports.list = async (req, res) => {
             }
         }
 
-        const specialtys = await Specialty.find(query)
+        const specialty = await Specialty.find(query)
             .skip((skip) * limit)
             .limit(limit)
             .sort({ lastName, firstName, createdAt })
+            .populate('currency', 'currency -_id')
 
         const totalSpecialty = await Specialty.count()
-        response.success(200, { data: specialtys, metaData: { skip, limit, total: totalSpecialty } }, res)
+        response.success(200, { data: specialty, metaData: { skip, limit, total: totalSpecialty } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
