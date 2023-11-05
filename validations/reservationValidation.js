@@ -23,4 +23,27 @@ const createReservationValidation = Joi.object({
     status: Joi.boolean().optional(),
 })
 
-module.exports = { createReservationValidation }
+const updateReservationValidation = Joi.object({
+    appointmentDate: Joi.string()
+        .required(),
+
+    duration: Joi.number()
+        .optional(),
+
+    patient: Joi.string()
+        .required(),
+
+    category: Joi.string()
+        .required(),
+
+    specialties: Joi.array(),
+
+    doctors: Joi.array(),
+
+    note: Joi.string()
+        .allow(''),
+
+    status: Joi.boolean().optional(),
+})
+
+module.exports = { createReservationValidation, updateReservationValidation }

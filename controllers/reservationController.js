@@ -1,7 +1,7 @@
 const moment = require('moment')
 const response = require('../helpers/response')
 const Reservation = require('../models/Reservation')
-const { createReservationValidation } = require('../validations/reservationValidation')
+const { createReservationValidation, updateReservationValidation } = require('../validations/reservationValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors } = require('../helpers/utils')
 
@@ -27,6 +27,35 @@ exports._delete = async (req, res) => {
         if (res.log) res.log.description = reason
         const reservation = await Reservation.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
         response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_DELETED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.update = async (req, res) => {
+    try {
+        const { error } = updateReservationValidation.validate(req.body, { abortEarly: false })
+        if (error) throw new ValidationError(error.message, extractJoiErrors(error))
+        const id = req.params.id
+        const body = req.body
+        body.updatedBy = req.user?._id
+        const reservation = await Reservation.findByIdAndUpdate(id, body)
+        response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_UPDATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.detail = async (req, res) => {
+    try {
+        const id = req.params.id
+        const reservation = await Reservation.findById(id)
+            .populate('createdBy', 'username -_id')
+            .populate('updatedBy', 'username -_id')
+            .populate('specialties', 'name -_id')
+            .populate('doctors', 'lastName firstName contact -_id')
+            .populate('patient', 'lastName firstName contact -_id')
+        response.success(200, { data: reservation }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
