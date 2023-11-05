@@ -13,7 +13,7 @@ const createDoctorValidation = Joi.object({
         .max(30)
         .required(),
 
-    specialty: Joi.array(),
+    specialties: Joi.array(),
 
     shift: Joi.array(),
 
@@ -60,7 +60,7 @@ const updateDoctorValidation = Joi.object({
         .max(30)
         .required(),
 
-    specialty: Joi.array(),
+    specialties: Joi.array(),
 
     shift: Joi.array(),
 

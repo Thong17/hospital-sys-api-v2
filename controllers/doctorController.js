@@ -94,6 +94,7 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ lastName, firstName, createdAt })
+            .populate('specialties', 'name')
 
         const totalDoctor = await Doctor.count()
         response.success(200, { data: doctors, metaData: { skip, limit, total: totalDoctor } }, res)

@@ -1,26 +1,30 @@
 const mongoose = require('mongoose')
 const initialObject = require('./index')
+const Doctor = require('./Doctor')
+const Patient = require('./Patient')
+const Specialty = require('./Specialty')
 
 const schema = new mongoose.Schema(
     {
-        firstName: {
-            type: String,
-            required: [true, 'FIRST_NAME_IS_REQUIRED']
+        appointmentDate: {
+            type: Date
         },
-        lastName: {
-            type: String,
-            required: [true, 'LAST_NAME_IS_REQUIRED']
+        duration: {
+            type: Number,
+            default: 60
         },
-        gender: {
+        category: {
             type: String,
-            enum: ['MALE', 'FEMALE'],
-            required: [true, 'GENDER_IS_REQUIRED']
+            enum: ['NORMAL', 'MILD', 'URGENT', 'EMERGENCY'],
+            default: 'NORMAL'
         },
-        email: {
-            type: String,
+        note: {
+            type: String
         },
-        contact: {
+        stage: {
             type: String,
+            enum: ['PENDING', 'ACCEPTED', 'REJECTED'],
+            default: 'PENDING'
         },
         specialties: [{
             type: mongoose.Schema.ObjectId,
@@ -40,25 +44,40 @@ const schema = new mongoose.Schema(
                 message: 'SPECIALTY_IS_NOT_EXIST'
             },
         }],
-        dateOfBirth: {
-            type: Date
-        },
-        startTime: {
-            type: String
-        },
-        endTime: {
-            type: String
-        },
-        shift: {
-            type: Array,
-            default: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
-        },
-        description: {
-            type: String
-        },
-        rate: {
-            type: Number,
-            default: 0
+        doctors: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'Doctor',
+            validate: {
+                validator: (id) => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            const doctor = await Doctor.findById(id)
+                            resolve(!!doctor)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    })
+                },
+                message: 'DOCTOR_IS_NOT_EXIST'
+            },
+        }],
+        patient: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Patient',
+            required: [true, 'PATIENT_IS_REQUIRED'],
+            validate: {
+                validator: (id) => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            const patient = await Patient.findById(id)
+                            resolve(!!patient)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    })
+                },
+                message: 'PATIENT_IS_NOT_EXIST'
+            },
         },
         ...initialObject
     },
@@ -68,6 +87,7 @@ const schema = new mongoose.Schema(
 )
 
 schema.pre('save', function (next) {
+    // TODO: tags
     const firstName = this.firstName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const lastName = this.lastName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
@@ -85,4 +105,4 @@ schema.pre('findOneAndUpdate', function (next) {
     next()
 })
 
-module.exports = mongoose.model('Doctor', schema)
+module.exports = mongoose.model('Reservation', schema)
