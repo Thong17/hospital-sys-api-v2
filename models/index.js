@@ -11,7 +11,7 @@ module.exports = {
     },
     status: {
         type: Boolean,
-        default: false
+        default: true
     },
     isDeleted: {
         type: Boolean,

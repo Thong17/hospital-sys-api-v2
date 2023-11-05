@@ -3,13 +3,12 @@ const initialObject = require('./index')
 
 const schema = new mongoose.Schema(
     {
-        firstName: {
+        username: {
             type: String,
-            required: [true, 'FIRST_NAME_IS_REQUIRED']
+            required: [true, 'USERNAME_IS_REQUIRED']
         },
-        lastName: {
+        fullName: {
             type: String,
-            required: [true, 'LAST_NAME_IS_REQUIRED']
         },
         gender: {
             type: String,
@@ -21,6 +20,7 @@ const schema = new mongoose.Schema(
         },
         contact: {
             type: String,
+            required: [true, 'CONTACT_IS_REQUIRED']
         },
         dateOfBirth: {
             type: Date
