@@ -99,7 +99,7 @@ exports.list = async (req, res) => {
             .sort({ username, createdAt })
             .populate('role', 'name -_id')
 
-        const totalUser = await User.count()
+        const totalUser = await User.count({ isDeleted: false })
         response.success(200, { data: users, metaData: { skip, limit, total: totalUser } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

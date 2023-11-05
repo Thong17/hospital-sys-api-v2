@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const initialObject = require('./index')
+const Specialty = require('./Specialty')
 
 const schema = new mongoose.Schema(
     {

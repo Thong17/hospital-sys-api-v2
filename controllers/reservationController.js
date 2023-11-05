@@ -1,6 +1,7 @@
 const moment = require('moment')
 const response = require('../helpers/response')
 const Reservation = require('../models/Reservation')
+const DoctorReservation = require('../models/DoctorReservation')
 const { createReservationValidation, updateReservationValidation } = require('../validations/reservationValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors } = require('../helpers/utils')
@@ -14,6 +15,10 @@ exports.create = async (req, res) => {
         const reservation = new Reservation(body)
         reservation.createdBy = req.user?._id
         await reservation.save()
+        for (let i = 0; i < reservation.doctors.length; i++) {
+            const doctorId = reservation.doctors[i]
+            DoctorReservation.create({ doctor: doctorId, reservation: reservation._id })
+        }
         response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -84,7 +89,7 @@ exports.list = async (req, res) => {
             .sort({ lastName, firstName, createdAt })
             .populate('patient', 'lastName firstName contact -_id')
 
-        const totalReservation = await Reservation.count()
+        const totalReservation = await Reservation.count({ isDeleted: false })
         response.success(200, { data: reservation, metaData: { skip, limit, total: totalReservation } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

@@ -55,7 +55,7 @@ exports.list = async (req, res) => {
             .sort({ lastName, firstName, createdAt })
             .populate('currency', 'currency -_id')
 
-        const totalSpecialty = await Specialty.count()
+        const totalSpecialty = await Specialty.count({ isDeleted: false })
         response.success(200, { data: specialty, metaData: { skip, limit, total: totalSpecialty } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
