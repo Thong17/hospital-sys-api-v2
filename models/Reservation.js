@@ -7,7 +7,11 @@ const Specialty = require('./Specialty')
 const schema = new mongoose.Schema(
     {
         appointmentDate: {
-            type: Date
+            type: Date,
+            default: Date.now,
+            set: function() {
+                return this.appointmentDate || Date.now()
+            }
         },
         duration: {
             type: Number,
@@ -29,7 +33,6 @@ const schema = new mongoose.Schema(
         specialties: [{
             type: mongoose.Schema.ObjectId,
             ref: 'Specialty',
-            required: [true, 'SPECIALTY_IS_REQUIRED'],
             validate: {
                 validator: (id) => {
                     return new Promise(async (resolve, reject) => {

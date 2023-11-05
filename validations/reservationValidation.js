@@ -2,7 +2,8 @@ const Joi = require('joi')
 
 const createReservationValidation = Joi.object({
     appointmentDate: Joi.string()
-        .required(),
+        .optional()
+        .allow(''),
 
     duration: Joi.number()
         .optional(),
