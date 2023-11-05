@@ -42,7 +42,6 @@ const schema = new mongoose.Schema(
         role: {
             type: mongoose.Schema.ObjectId,
             ref: 'Role',
-            required: [true, 'ROLE_IS_REQUIRED'],
             validate: {
                 validator: (id) => {
                     return new Promise(async (resolve, reject) => {

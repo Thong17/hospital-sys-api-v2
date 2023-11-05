@@ -3,6 +3,7 @@ const initialObject = require('./index')
 const Doctor = require('./Doctor')
 const Patient = require('./Patient')
 const Specialty = require('./Specialty')
+const DoctorReservation = require('./DoctorReservation')
 
 const schema = new mongoose.Schema(
     {
@@ -99,6 +100,18 @@ schema.pre('save', function (next) {
     next()
 })
 
+schema.post('save', async function (doc) {
+    try {
+        if (doc?.stage !== 'PENDING') return
+        for (let i = 0; i < doc.doctors?.length; i++) {
+            const doctorId = doc.doctors[i]
+            await DoctorReservation.create({ doctor: doctorId, reservation: doc._id })
+        }
+    } catch (error) {
+        console.error(error)
+    }
+})
+
 schema.pre('findOneAndUpdate', function (next) {
     const firstName = this._update.firstName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const lastName = this._update.lastName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
@@ -106,6 +119,33 @@ schema.pre('findOneAndUpdate', function (next) {
     const gender = this._update.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     this._update.tags = [...firstName, ...lastName, ...description, ...gender]
     next()
+})
+
+schema.post('findOneAndUpdate', async function (doc) {
+    try {
+        const matchedIds = await DoctorReservation.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $eq: ["$updatedAt", "$createdAt"]
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 1
+                }
+            }
+        ])
+        const result = await DoctorReservation.deleteMany({ _id: { $in: matchedIds.map(item => item._id) } })
+        console.log(`CLEAR RESERVATION ID: ${doc?._id}`, result)
+        for (let i = 0; i < doc?.doctors?.length; i++) {
+            const doctorId = doc?.doctors[i]
+            await DoctorReservation.create({ doctor: doctorId, reservation: doc?._id })
+        }
+    } catch (error) {
+        console.error(error)
+    }
 })
 
 module.exports = mongoose.model('Reservation', schema)

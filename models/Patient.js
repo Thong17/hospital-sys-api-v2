@@ -1,5 +1,8 @@
 const mongoose = require('mongoose')
 const initialObject = require('./index')
+const User = require('./User')
+const PatientHistory = require('./PatientHistory')
+const { encryptPassword } = require('../helpers/utils')
 
 const schema = new mongoose.Schema(
     {
@@ -32,6 +35,23 @@ const schema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        histories: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'PatientHistory',
+            validate: {
+                validator: (id) => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            const history = await PatientHistory.findById(id)
+                            resolve(!!history)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    })
+                },
+                message: 'SPECIALTY_IS_NOT_EXIST'
+            },
+        }],
         ...initialObject
     },
     {
@@ -46,6 +66,17 @@ schema.pre('save', function (next) {
     const gender = this.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     this.tags = [...firstName, ...lastName, ...description, ...gender]
     next()
+})
+
+schema.post('save', async function (doc) {
+    try {
+        const userLength = User.countDocuments({ _id: doc?._id })
+        if (userLength > 0) return
+        const password = await encryptPassword(`${doc?.username}${process.env.PASSWORD_DEFAULT}`)
+        await User.create({ _id: doc?._id, username: doc?.username, password, segment: 'PATIENT' })
+    } catch (error) {
+        console.error(error)
+    }
 })
 
 schema.pre('findOneAndUpdate', function (next) {

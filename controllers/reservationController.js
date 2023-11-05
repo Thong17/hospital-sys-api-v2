@@ -1,10 +1,10 @@
 const moment = require('moment')
 const response = require('../helpers/response')
 const Reservation = require('../models/Reservation')
-const DoctorReservation = require('../models/DoctorReservation')
-const { createReservationValidation, updateReservationValidation } = require('../validations/reservationValidation')
+const { createReservationValidation, updateReservationValidation, rejectReservationValidation, approveReservationValidation } = require('../validations/reservationValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors } = require('../helpers/utils')
+const DoctorReservation = require('../models/DoctorReservation')
 
 
 exports.create = async (req, res) => {
@@ -15,10 +15,6 @@ exports.create = async (req, res) => {
         const reservation = new Reservation(body)
         reservation.createdBy = req.user?._id
         await reservation.save()
-        for (let i = 0; i < reservation.doctors.length; i++) {
-            const doctorId = reservation.doctors[i]
-            DoctorReservation.create({ doctor: doctorId, reservation: reservation._id })
-        }
         response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -44,7 +40,52 @@ exports.update = async (req, res) => {
         const id = req.params.id
         const body = req.body
         body.updatedBy = req.user?._id
-        const reservation = await Reservation.findByIdAndUpdate(id, body)
+        const reservation = await Reservation.findByIdAndUpdate(id, body, { new: true })
+        response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_UPDATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.reject = async (req, res) => {
+    try {
+        const { error } = rejectReservationValidation.validate(req.body, { abortEarly: false })
+        if (error) throw new ValidationError(error.message, extractJoiErrors(error))
+        const note = req.body?.note
+        const doctorId = req.body?.doctorId
+        const reservationId = req.params.id
+
+        const reservation = await Reservation.findById(reservationId)
+        reservation.updatedBy = req.user?._id
+        
+        let doctors = reservation?.doctors
+        console.log(reservation.doctors)
+        reservation.doctors = doctors?.filter(item => item !== doctorId)
+
+        await DoctorReservation.findOneAndUpdate({ reservation: reservation?._id, doctor: doctorId, approval: 'PENDING' }, { approval: 'REJECTED', note })
+        await reservation.save()
+
+        response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_UPDATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.approve = async (req, res) => {
+    try {
+        const { error } = approveReservationValidation.validate(req.body, { abortEarly: false })
+        if (error) throw new ValidationError(error.message, extractJoiErrors(error))
+        const note = req.body?.note
+        const doctorId = req.body?.doctorId
+        const reservationId = req.params.id
+
+        const reservation = await Reservation.findById(reservationId)
+        reservation.updatedBy = req.user?._id
+        reservation.doctors = [doctorId]
+        await DoctorReservation.findOneAndUpdate({ reservation: reservation?._id, doctor: doctorId, approval: 'PENDING' }, { approval: 'ACCEPTED', note })
+
+        reservation.stage = 'ACCEPTED'
+        await reservation.save()
         response.success(200, { data: reservation, message: 'RESERVATION_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -74,7 +115,7 @@ exports.list = async (req, res) => {
         const appointmentDate = req.query.appointmentDate === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
-        let query = { isDeleted: false }
+        let query = { isDeleted: false, stage: 'PENDING' }
         const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
         if (search?.length > 0) {
             query['tags'] = {
