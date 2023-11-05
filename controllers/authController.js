@@ -23,8 +23,25 @@ exports.login = async (req, res) => {
             _id: user._id,
             username: user.username,
             segment: user.segment,
+            privilege: user.privilege,
+            navigation: user.navigation,
         }
         return response.success(200, { accessToken, refreshToken, data }, res)
+    } catch (error) {
+        return response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.profile = async (req, res) => {
+    try {
+        const data = {
+            _id: req.user?._id,
+            username: req.user?.username,
+            segment: req.user?.segment,
+            privilege: req.user?.privilege,
+            navigation: req.user?.navigation,
+        }
+        return response.success(200, { data }, res)
     } catch (error) {
         return response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

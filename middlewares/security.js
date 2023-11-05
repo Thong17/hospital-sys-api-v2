@@ -25,9 +25,15 @@ exports.auth = async (req, res, next) => {
         const accessToken = req.headers.authorization?.replace('Bearer ', '')
         if (!accessToken) throw new UnauthorizedError('UNAUTHORIZED')
         const data = await verifyToken(process.env.JWT_SECRET, accessToken)
-        const user = await User.findById(data?.id)
+        const user = await User.findById(data?.id).populate('role', 'navigation privilege -_id')
         if (!user) throw new UnauthorizedError('UNAUTHORIZED')
-        req.user = user
+        req.user = {
+            _id: user?._id,
+            segment: user?.segment,
+            username: user?.username,
+            privilege: user?.role?.privilege,
+            navigation: user?.role?.navigation,
+        }
         next()
     } catch (error) {
         return response.failure(error.code, { message: error.message }, res, error)

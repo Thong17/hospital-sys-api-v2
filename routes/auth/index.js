@@ -1,8 +1,13 @@
 const router = require('express').Router()
-const { login, register, refreshToken } = require('../../controllers/authController')
+const security = require('../../middlewares/security')
+const { login, register, refreshToken, profile } = require('../../controllers/authController')
 
 router.post('/login', (req, res) => {
     login(req, res)
+})
+
+router.get('/profile', security.auth, (req, res) => {
+    profile(req, res)
 })
 
 router.post('/register', (req, res) => {
