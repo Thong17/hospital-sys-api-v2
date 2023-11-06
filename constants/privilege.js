@@ -60,6 +60,66 @@ exports.privilege = {
                 action: 'reject'
             },
         },
+        doctor: {
+            list: {
+                route: 'doctor',
+                action: 'list'
+            },
+            detail: {
+                route: 'doctor',
+                action: 'detail'
+            },
+            create: {
+                route: 'doctor',
+                action: 'create'
+            },
+            update: {
+                route: 'doctor',
+                action: 'update'
+            },
+            delete: {
+                route: 'doctor',
+                action: 'delete'
+            },
+            approve: {
+                route: 'doctor',
+                action: 'approve'
+            },
+            reject: {
+                route: 'doctor',
+                action: 'reject'
+            },
+        },
+        patient: {
+            list: {
+                route: 'patient',
+                action: 'list'
+            },
+            detail: {
+                route: 'patient',
+                action: 'detail'
+            },
+            create: {
+                route: 'patient',
+                action: 'create'
+            },
+            update: {
+                route: 'patient',
+                action: 'update'
+            },
+            delete: {
+                route: 'patient',
+                action: 'delete'
+            },
+            approve: {
+                route: 'patient',
+                action: 'approve'
+            },
+            reject: {
+                route: 'patient',
+                action: 'reject'
+            },
+        },
     }
 }
 
@@ -72,6 +132,14 @@ exports.navigation = {
         user: {
             menu: 'admin',
             navbar: 'user'
+        },
+        doctor: {
+            menu: 'admin',
+            navbar: 'doctor'
+        },
+        patient: {
+            menu: 'admin',
+            navbar: 'patient'
         },
     },
     operation: {
