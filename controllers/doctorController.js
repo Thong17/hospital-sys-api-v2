@@ -78,8 +78,7 @@ exports.list = async (req, res) => {
         const page = parseInt(req.query.page ?? 1)
         const limit = parseInt(req.query.limit ?? 5)
         const skip = page - 1
-        const lastName = req.query.lastName === 'asc' ? 1 : -1
-        const firstName = req.query.firstName === 'asc' ? 1 : -1
+        const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
@@ -93,7 +92,7 @@ exports.list = async (req, res) => {
         const doctors = await Doctor.find(query)
             .skip((skip) * limit)
             .limit(limit)
-            .sort({ lastName, firstName, createdAt })
+            .sort({ username, createdAt })
             .populate('specialties', 'name')
 
         const totalDoctor = await Doctor.count({ isDeleted: false })
@@ -133,11 +132,11 @@ exports._export = async (req, res) => {
                 width: 27,
             },
             { 
-                key: 'lastName', 
+                key: 'username', 
                 width: 27,
             },
             { 
-                key: 'firstName', 
+                key: 'fullName', 
                 width: 27,
             },
             { 
@@ -190,7 +189,7 @@ exports._export = async (req, res) => {
             }
         ]
 
-        let columnHeader = { no: 'NO', id: 'ID', lastName: 'LAST_NAME', firstName: 'FIRST_NAME', gender: 'GENDER', dateOfBirth: 'DATE_OF_BIRTH', specialty: 'SPECIALTY', rate: 'RATE', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', updatedBy: 'UPDATED_BY', createdAt: 'CREATED_BY', updatedAt: 'UPDATED_AT', tags: 'TAGS' }
+        let columnHeader = { no: 'NO', id: 'ID', username: 'LAST_NAME', fullName: 'FIRST_NAME', gender: 'GENDER', dateOfBirth: 'DATE_OF_BIRTH', specialty: 'SPECIALTY', rate: 'RATE', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', updatedBy: 'UPDATED_BY', createdAt: 'CREATED_BY', updatedAt: 'UPDATED_AT', tags: 'TAGS' }
         languages.forEach(item => {
             columnHeader[`role${item}`] = `ROLE.${item.toUpperCase()}`
         })
@@ -200,8 +199,8 @@ exports._export = async (req, res) => {
                 let obj = {
                     no: index + 1,
                     id: item._id.toString(),
-                    lastName: item.lastName,
-                    firstName: item.firstName,
+                    username: item.username,
+                    fullName: item.fullName,
                     gender: item.gender,
                     dateOfBirth: moment(item.dateOfBirth).format('YYYY MMM DD'),
                     specialty: JSON.stringify(item.specialty),

@@ -6,11 +6,10 @@ const { encryptPassword } = require('../helpers/utils')
 
 const schema = new mongoose.Schema(
     {
-        firstName: {
+        fullName: {
             type: String,
-            required: [true, 'FIRST_NAME_IS_REQUIRED']
         },
-        lastName: {
+        username: {
             type: String,
             required: [true, 'LAST_NAME_IS_REQUIRED']
         },
@@ -71,11 +70,11 @@ const schema = new mongoose.Schema(
 )
 
 schema.pre('save', function (next) {
-    const firstName = this.firstName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const lastName = this.lastName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const fullName = this.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const username = this.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const gender = this.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...firstName, ...lastName, ...description, ...gender]
+    this.tags = [...fullName, ...username, ...description, ...gender]
     next()
 })
 
@@ -83,19 +82,19 @@ schema.post('save', async function (doc) {
     try {
         const userLength = User.countDocuments({ _id: doc?._id })
         if (userLength > 0) return
-        const password = await encryptPassword(`${doc?.firstName}${process.env.PASSWORD_DEFAULT}`)
-        await User.create({ _id: doc?._id, username: doc?.firstName, password, segment: 'DOCTOR' })
+        const password = await encryptPassword(`${doc?.fullName}${process.env.PASSWORD_DEFAULT}`)
+        await User.create({ _id: doc?._id, username: doc?.username, password, segment: 'DOCTOR' })
     } catch (error) {
         console.error(error)
     }
 })
 
 schema.pre('findOneAndUpdate', function (next) {
-    const firstName = this._update.firstName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const lastName = this._update.lastName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const fullName = this._update.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const username = this._update.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const gender = this._update.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...firstName, ...lastName, ...description, ...gender]
+    this._update.tags = [...fullName, ...username, ...description, ...gender]
     next()
 })
 

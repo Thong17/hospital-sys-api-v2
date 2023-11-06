@@ -1,17 +1,15 @@
 const Joi = require('joi')
 
 const createDoctorValidation = Joi.object({
-    lastName: Joi.string()
+    username: Joi.string()
         .alphanum()
         .min(2)
         .max(30)
         .required(),
 
-    firstName: Joi.string()
-        .alphanum()
-        .min(2)
-        .max(30)
-        .required(),
+    fullName: Joi.string()
+        .optional()
+        .allow(''),
 
     specialties: Joi.array(),
 
@@ -48,17 +46,15 @@ const createDoctorValidation = Joi.object({
 })
 
 const updateDoctorValidation = Joi.object({
-    lastName: Joi.string()
+    username: Joi.string()
         .alphanum()
         .min(2)
         .max(30)
         .required(),
 
-    firstName: Joi.string()
-        .alphanum()
-        .min(2)
-        .max(30)
-        .required(),
+    fullName: Joi.string()
+        .optional()
+        .allow(''),
 
     specialties: Joi.array(),
 
