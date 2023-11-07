@@ -3,7 +3,7 @@ const response = require('../helpers/response')
 const Reservation = require('../models/Reservation')
 const { createReservationValidation, updateReservationValidation, refuseReservationValidation, approveReservationValidation } = require('../validations/reservationValidation')
 const { ValidationError, BadRequestError } = require('../helpers/handlingErrors')
-const { extractJoiErrors } = require('../helpers/utils')
+const { extractJoiErrors, convertStringToArrayRegExp } = require('../helpers/utils')
 const DoctorReservation = require('../models/DoctorReservation')
 
 
@@ -123,7 +123,7 @@ exports.list = async (req, res) => {
                 $in: req.user?._id
             }
         }
-        const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
+        const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
                 $all: search

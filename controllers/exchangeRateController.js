@@ -3,7 +3,7 @@ const response = require('../helpers/response')
 const ExchangeRate = require('../models/ExchangeRate')
 const { createExchangeRateValidation } = require('../validations/exchangeRateValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
-const { extractJoiErrors } = require('../helpers/utils')
+const { extractJoiErrors, convertStringToArrayRegExp } = require('../helpers/utils')
 
 
 exports.create = async (req, res) => {
@@ -42,7 +42,7 @@ exports.list = async (req, res) => {
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
-        const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
+        const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
                 $all: search

@@ -4,7 +4,7 @@ const Doctor = require('../models/Doctor')
 const History = require('../models/History')
 const { createDoctorValidation, updateDoctorValidation } = require('../validations/doctorValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
-const { extractJoiErrors, readExcel, convertArrayMongo } = require('../helpers/utils')
+const { extractJoiErrors, readExcel, convertArrayMongo, convertStringToArrayRegExp } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
 
 
@@ -82,7 +82,7 @@ exports.list = async (req, res) => {
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
-        const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
+        const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
                 $all: search
@@ -109,7 +109,7 @@ exports._export = async (req, res) => {
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
 
         let query = { isDeleted: false }
-        const search = req.query.search?.split(' ').filter(Boolean).map(value => new RegExp(value))
+        const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
                 $all: search

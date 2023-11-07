@@ -93,5 +93,9 @@ module.exports = utils = {
             delete obj.createdBy
             return obj
         })
+    },
+    convertStringToArrayRegExp: (value) => {
+        if (typeof value !== 'string') return []
+        return value?.split(' ').filter(Boolean).map(value => new RegExp(value))
     }
 }

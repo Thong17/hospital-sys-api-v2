@@ -152,6 +152,28 @@ exports.privilege = {
                 action: 'refuse'
             },
         },
+        schedule: {
+            list: {
+                route: 'schedule',
+                action: 'list'
+            },
+            detail: {
+                route: 'schedule',
+                action: 'detail'
+            },
+            create: {
+                route: 'schedule',
+                action: 'create'
+            },
+            update: {
+                route: 'schedule',
+                action: 'update'
+            },
+            delete: {
+                route: 'schedule',
+                action: 'delete'
+            },
+        },
     }
 }
 
@@ -182,6 +204,10 @@ exports.navigation = {
         reservation: {
             menu: 'operation',
             navbar: 'reservation'
+        },
+        schedule: {
+            menu: 'operation',
+            navbar: 'schedule'
         },
     },
 }

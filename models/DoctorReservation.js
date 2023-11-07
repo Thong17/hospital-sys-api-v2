@@ -36,6 +36,10 @@ const schema = new mongoose.Schema(
         endedAt: {
             type: Date
         },
+        tags: {
+            type: Array,
+            default: []
+        },
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
@@ -43,5 +47,18 @@ const schema = new mongoose.Schema(
 )
 
 schema.index({ doctor: 1, reservation: 1, approval: 1 }, { unique: true })
+
+schema.pre('save', async function (next) {
+    await this.populate('doctor patient')
+    const note = this.note?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const doctorUsername = this.doctor?.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const doctorFullName = this.doctor?.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const doctorEmail = this.doctor?.email?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const patientUsername = this.patient?.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const patientFullName = this.patient?.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const patientEmail = this.patient?.email?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    this.tags = [...note, ...doctorUsername, ...doctorFullName, ...doctorEmail, ...patientUsername, ...patientFullName, ...patientEmail]
+    next()
+})
 
 module.exports = mongoose.model('DoctorReservation', schema)
