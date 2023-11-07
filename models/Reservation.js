@@ -105,7 +105,7 @@ schema.post('save', async function (doc) {
         if (doc?.stage !== 'PENDING') return
         for (let i = 0; i < doc.doctors?.length; i++) {
             const doctorId = doc.doctors[i]
-            await DoctorReservation.create({ doctor: doctorId, reservation: doc._id })
+            await DoctorReservation.create({ doctor: doctorId, reservation: doc._id, patient: doc.patient })
         }
     } catch (error) {
         console.error(error)
@@ -141,7 +141,7 @@ schema.post('findOneAndUpdate', async function (doc) {
         console.log(`CLEAR RESERVATION ID: ${doc?._id}`, result)
         for (let i = 0; i < doc?.doctors?.length; i++) {
             const doctorId = doc?.doctors[i]
-            await DoctorReservation.create({ doctor: doctorId, reservation: doc?._id })
+            await DoctorReservation.create({ doctor: doctorId, reservation: doc._id, patient: doc.patient })
         }
     } catch (error) {
         console.error(error)

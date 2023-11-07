@@ -15,10 +15,26 @@ const schema = new mongoose.Schema(
             ref: 'Doctor',
             required: [true, 'DOCTOR_IS_REQUIRED'],
         },
+        patient: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Patient',
+            required: [true, 'PATIENT_IS_REQUIRED'],
+        },
         reservation: {
             type: mongoose.Schema.ObjectId,
             ref: 'Reservation',
             required: [true, 'RESERVATION_IS_REQUIRED'],
+        },
+        stage: {
+            type: String,
+            enum: ['PENDING', 'STARTED', 'ENDED'],
+            default: 'PENDING'
+        },
+        startedAt: {
+            type: Date,
+        },
+        endedAt: {
+            type: Date
         },
     },
     {
