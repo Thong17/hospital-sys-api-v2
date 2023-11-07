@@ -28,7 +28,7 @@ const schema = new mongoose.Schema(
         },
         stage: {
             type: String,
-            enum: ['PENDING', 'ACCEPTED', 'REJECTED'],
+            enum: ['PENDING', 'ACCEPTED', 'REFUSED'],
             default: 'PENDING'
         },
         specialties: [{

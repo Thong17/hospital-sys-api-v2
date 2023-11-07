@@ -4,7 +4,7 @@ const schema = new mongoose.Schema(
     {
         approval: {
             type: String,
-            enum: ['PENDING', 'ACCEPTED', 'REJECTED'],
+            enum: ['PENDING', 'ACCEPTED', 'REFUSED'],
             default: 'PENDING'
         },
         note: {

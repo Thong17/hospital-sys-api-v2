@@ -47,20 +47,14 @@ const updateReservationValidation = Joi.object({
     status: Joi.boolean().optional(),
 })
 
-const rejectReservationValidation = Joi.object({
-    doctorId: Joi.string()
-        .required(),
-
+const refuseReservationValidation = Joi.object({
     note: Joi.string()
         .allow(''),
 })
 
 const approveReservationValidation = Joi.object({
-    doctorId: Joi.string()
-        .required(),
-
     note: Joi.string()
         .allow(''),
 })
 
-module.exports = { createReservationValidation, updateReservationValidation, rejectReservationValidation, approveReservationValidation }
+module.exports = { createReservationValidation, updateReservationValidation, refuseReservationValidation, approveReservationValidation }

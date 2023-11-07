@@ -120,6 +120,38 @@ exports.privilege = {
                 action: 'reject'
             },
         },
+    },
+    operation: {
+        reservation: {
+            list: {
+                route: 'reservation',
+                action: 'list'
+            },
+            detail: {
+                route: 'reservation',
+                action: 'detail'
+            },
+            create: {
+                route: 'reservation',
+                action: 'create'
+            },
+            update: {
+                route: 'reservation',
+                action: 'update'
+            },
+            delete: {
+                route: 'reservation',
+                action: 'delete'
+            },
+            accept: {
+                route: 'reservation',
+                action: 'accept'
+            },
+            refuse: {
+                route: 'reservation',
+                action: 'refuse'
+            },
+        },
     }
 }
 
