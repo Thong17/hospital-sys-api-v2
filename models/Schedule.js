@@ -61,4 +61,4 @@ schema.pre('save', async function (next) {
     next()
 })
 
-module.exports = mongoose.model('DoctorReservation', schema)
+module.exports = mongoose.model('Schedule', schema)

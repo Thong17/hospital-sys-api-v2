@@ -21,28 +21,45 @@ const schema = new mongoose.Schema(
             },
         }],
         diagnose: {
-            type: String
+            type: String,
+            default: ''
         },
-        treatment: {
-            type: [String],
-            enum: ['X_RAY', 'SURGERY', 'MEDICATION', 'DIET', 'CHECK_UP', 'VACCINE']
-        },
-        medication: {
-            type: String
-        },
+        treatments: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'Category',
+            validate: {
+                validator: (id) => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            const treatment = await Category.findById(id)
+                            resolve(!!treatment)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    })
+                },
+                message: 'TREATMENT_IS_NOT_EXIST'
+            },
+        }],
+        medications: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'Product',
+        }],
         condition: {
             type: String,
-            enum: ['HEALTHY', 'BETTER', 'NEED_SCHEDULE', 'WORSEN']
+            enum: ['HEALTHY', 'NEED_SCHEDULE', 'WEAK']
         },
         comment: {
-            type: String
+            type: String,
+            default: ''
         },
         attachments: {
-            type: Array
+            type: Array,
+            default: []
         },
         schedule: {
             type: mongoose.Schema.ObjectId,
-            ref: 'DoctorReservation',
+            ref: 'Schedule',
             required: [true, 'SCHEDULE_IS_REQUIRED'],
         },
     },

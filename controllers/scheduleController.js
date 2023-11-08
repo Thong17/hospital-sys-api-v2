@@ -1,5 +1,5 @@
 const response = require('../helpers/response')
-const DoctorReservation = require('../models/DoctorReservation')
+const Schedule = require('../models/Schedule')
 const PatientHistory = require('../models/PatientHistory')
 const { convertStringToArrayRegExp } = require('../helpers/utils')
 const { BadRequestError } = require('../helpers/handlingErrors')
@@ -8,12 +8,12 @@ const { BadRequestError } = require('../helpers/handlingErrors')
 exports.start = async (req, res) => {
     try {
         const id = req.params.id
-        const schedule = await DoctorReservation.findById(id)
+        const schedule = await Schedule.findById(id)
         if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
         if (schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_STARTED')
         if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
-        await DoctorReservation.findByIdAndUpdate(id, { startedAt: Date.now(), stage: 'STARTED' })
-        await PatientHistory.create({ _id: id })
+        await Schedule.findByIdAndUpdate(id, { startedAt: Date.now(), stage: 'STARTED' })
+        await PatientHistory.create({ _id: id, schedule: id })
         response.success(200, { data: {}, message: 'SCHEDULE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -24,11 +24,11 @@ exports.end = async (req, res) => {
     try {
         const id = req.params.id
         const body = req.body
-        const schedule = await DoctorReservation.findById(id)
+        const schedule = await Schedule.findById(id)
         if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
         if (!schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_NOT_STARTED')
         if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
-        await DoctorReservation.findByIdAndUpdate(id, { endedAt: Date.now(), stage: 'ENDED' })
+        await Schedule.findByIdAndUpdate(id, { endedAt: Date.now(), stage: 'ENDED' })
         await PatientHistory.findByIdAndUpdate(id, body)
         response.success(200, { data: {}, message: 'SCHEDULE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
@@ -39,7 +39,7 @@ exports.end = async (req, res) => {
 exports.detail = async (req, res) => {
     try {
         const id = req.params.id
-        const schedule = await DoctorReservation.findById(id)
+        const schedule = await Schedule.findById(id)
             .populate('patient', '-_id')
             .populate('doctor', '-_id')
             .populate('reservation', '-_id')
@@ -70,7 +70,7 @@ exports.list = async (req, res) => {
             }
         }
 
-        const schedules = await DoctorReservation.find(query)
+        const schedules = await Schedule.find(query)
             .skip((skip) * limit)
             .limit(limit)
             .sort({ createdAt })
@@ -78,7 +78,7 @@ exports.list = async (req, res) => {
             .populate('doctor', 'username fullName contact -_id')
             .populate('patient', 'username fullName contact -_id')
 
-        const totalSchedule = await DoctorReservation.count({ approval: 'ACCEPTED' })
+        const totalSchedule = await Schedule.count({ approval: 'ACCEPTED' })
         response.success(200, { data: schedules, metaData: { skip, limit, total: totalSchedule } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

@@ -3,7 +3,7 @@ const initialObject = require('./index')
 const Doctor = require('./Doctor')
 const Patient = require('./Patient')
 const Specialty = require('./Specialty')
-const DoctorReservation = require('./DoctorReservation')
+const Schedule = require('./Schedule')
 
 const schema = new mongoose.Schema(
     {
@@ -105,7 +105,7 @@ schema.post('save', async function (doc) {
         if (doc?.stage !== 'PENDING') return
         for (let i = 0; i < doc.doctors?.length; i++) {
             const doctorId = doc.doctors[i]
-            await DoctorReservation.create({ doctor: doctorId, reservation: doc._id, patient: doc.patient })
+            await Schedule.create({ doctor: doctorId, reservation: doc._id, patient: doc.patient })
         }
     } catch (error) {
         console.error(error)
@@ -123,7 +123,7 @@ schema.pre('findOneAndUpdate', function (next) {
 
 schema.post('findOneAndUpdate', async function (doc) {
     try {
-        const matchedIds = await DoctorReservation.aggregate([
+        const matchedIds = await Schedule.aggregate([
             {
                 $match: {
                     $expr: {
@@ -137,11 +137,11 @@ schema.post('findOneAndUpdate', async function (doc) {
                 }
             }
         ])
-        const result = await DoctorReservation.deleteMany({ _id: { $in: matchedIds.map(item => item._id) } })
+        const result = await Schedule.deleteMany({ _id: { $in: matchedIds.map(item => item._id) } })
         console.log(`CLEAR RESERVATION ID: ${doc?._id}`, result)
         for (let i = 0; i < doc?.doctors?.length; i++) {
             const doctorId = doc?.doctors[i]
-            await DoctorReservation.create({ doctor: doctorId, reservation: doc._id, patient: doc.patient })
+            await Schedule.create({ doctor: doctorId, reservation: doc._id, patient: doc.patient })
         }
     } catch (error) {
         console.error(error)

@@ -1,19 +1,19 @@
 const response = require('../helpers/response')
-const Symptom = require('../models/Symptom')
-const { createSymptomValidation } = require('../validations/symptomValidation')
+const Category = require('../models/Category')
+const { createCategoryValidation } = require('../validations/categoryValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, convertStringToArrayRegExp } = require('../helpers/utils')
 
 
 exports.create = async (req, res) => {
     try {
-        const { error } = createSymptomValidation.validate(req.body, { abortEarly: false })
+        const { error } = createCategoryValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
-        const symptom = new Symptom(body)
-        symptom.createdBy = req.user?._id
-        await symptom.save()
-        response.success(200, { data: symptom, message: 'SYMPTOM_HAS_BEEN_CREATED' }, res)
+        const category = new Category(body)
+        category.createdBy = req.user?._id
+        await category.save()
+        response.success(200, { data: category, message: 'CATEGORY_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -24,8 +24,8 @@ exports._delete = async (req, res) => {
         const id = req.params.id
         const reason = req.query.reason ?? ''
         if (res.log) res.log.description = reason
-        const symptom = await Symptom.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
-        response.success(200, { data: symptom, message: 'SYMPTOM_HAS_BEEN_DELETED' }, res)
+        const category = await Category.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user._id })
+        response.success(200, { data: category, message: 'CATEGORY_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -46,13 +46,13 @@ exports.list = async (req, res) => {
             }
         }
 
-        const symptom = await Symptom.find(query)
+        const category = await Category.find(query)
             .skip((skip) * limit)
             .limit(limit)
             .sort({ createdAt })
 
-        const totalSymptom = await Symptom.count({ isDeleted: false })
-        response.success(200, { data: symptom, metaData: { skip, limit, total: totalSymptom } }, res)
+        const totalCategory = await Category.count({ isDeleted: false })
+        response.success(200, { data: category, metaData: { skip, limit, total: totalCategory } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

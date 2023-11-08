@@ -56,6 +56,10 @@ const schema = new mongoose.Schema(
                 message: 'ROLE_IS_NOT_EXIST'
             },
         },
+        drawer: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Drawer',
+        },
         description: {
             type: String
         },

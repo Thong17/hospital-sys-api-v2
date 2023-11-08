@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const initialObject = require('./index')
 
 const schema = mongoose.Schema(
     {
@@ -18,6 +19,7 @@ const schema = mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Product'
         }],
+        ...initialObject
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }

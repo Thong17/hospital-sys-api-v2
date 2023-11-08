@@ -4,7 +4,7 @@ const Reservation = require('../models/Reservation')
 const { createReservationValidation, updateReservationValidation, refuseReservationValidation, approveReservationValidation } = require('../validations/reservationValidation')
 const { ValidationError, BadRequestError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, convertStringToArrayRegExp } = require('../helpers/utils')
-const DoctorReservation = require('../models/DoctorReservation')
+const Schedule = require('../models/Schedule')
 
 
 exports.create = async (req, res) => {
@@ -56,9 +56,9 @@ exports.refuse = async (req, res) => {
         const doctorId = req.user?._id
         const reservationId = req.params.id
 
-        const reservation = await DoctorReservation.findOneAndUpdate({ reservation: reservationId, doctor: doctorId, approval: 'PENDING' }, { approval: 'REFUSED', note })
+        const reservation = await Schedule.findOneAndUpdate({ reservation: reservationId, doctor: doctorId, approval: 'PENDING' }, { approval: 'REFUSED', note })
         if (!reservation) throw new BadRequestError('DOCTOR_IS_NOT_IN_SELECTED')
-        const selectedDoctors = await DoctorReservation.find({ reservation: reservationId, approval: 'PENDING' })
+        const selectedDoctors = await Schedule.find({ reservation: reservationId, approval: 'PENDING' })
         const data = await Reservation.findByIdAndUpdate(reservationId, { 
             updatedBy: req.user?._id, 
             stage: selectedDoctors?.length === 0 ? 'REFUSED' : 'PENDING', 
@@ -79,7 +79,7 @@ exports.accept = async (req, res) => {
         const doctorId = req.user?._id
         const reservationId = req.params.id
 
-        const reservation = await DoctorReservation.findOneAndUpdate({ reservation: reservationId, doctor: doctorId, approval: 'PENDING' }, { approval: 'ACCEPTED', note })
+        const reservation = await Schedule.findOneAndUpdate({ reservation: reservationId, doctor: doctorId, approval: 'PENDING' }, { approval: 'ACCEPTED', note })
         if (!reservation) throw new BadRequestError('DOCTOR_IS_NOT_IN_SELECTED')
         const data = await Reservation.findByIdAndUpdate(reservationId, { 
             updatedBy: req.user?._id, 
