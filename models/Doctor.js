@@ -82,7 +82,7 @@ schema.post('save', async function (doc) {
     try {
         const userLength = User.countDocuments({ _id: doc?._id })
         if (userLength > 0) return
-        const password = await encryptPassword(`${doc?.fullName}${process.env.PASSWORD_DEFAULT}`)
+        const password = await encryptPassword(`${doc?.username}${process.env.PASSWORD_DEFAULT}`)
         await User.create({ _id: doc?._id, username: doc?.username, password, segment: 'DOCTOR' })
     } catch (error) {
         console.error(error)

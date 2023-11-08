@@ -35,22 +35,13 @@ const schema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        detail: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'PatientDetail',
+        },
         histories: [{
             type: mongoose.Schema.ObjectId,
             ref: 'PatientHistory',
-            validate: {
-                validator: (id) => {
-                    return new Promise(async (resolve, reject) => {
-                        try {
-                            const history = await PatientHistory.findById(id)
-                            resolve(!!history)
-                        } catch (error) {
-                            reject(error)
-                        }
-                    })
-                },
-                message: 'SPECIALTY_IS_NOT_EXIST'
-            },
         }],
         ...initialObject
     },

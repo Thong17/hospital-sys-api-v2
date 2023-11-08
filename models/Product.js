@@ -9,15 +9,15 @@ const schema = new mongoose.Schema(
             required: [true, 'NAME_IS_REQUIRED'],
             validate: {
                 validator: async function(name) {
-                    const count = await this.model('Specialty').countDocuments({ name })
+                    const count = await this.model('Symptom').countDocuments({ name })
                     return count === 0
                 },
                 message: 'NAME_IS_ALREADY_EXIST'
             }
         },
-        cost: {
+        price: {
             type: Number,
-            default: 0
+            require: true
         },
         currency: {
             type: mongoose.Schema.ObjectId,
@@ -37,6 +37,18 @@ const schema = new mongoose.Schema(
                 message: 'EXCHANGE_RATE_IS_NOT_EXIST'
             },
         },
+        category: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Category'
+        },
+        isStock: {
+            type: Boolean,
+            default: false
+        },
+        code: {
+            type: String,
+            default: ''
+        },
         description: {
             type: String
         },
@@ -49,18 +61,16 @@ const schema = new mongoose.Schema(
 
 schema.pre('save', function (next) {
     const name = Object.keys(this.name || {}).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
-    const cost = this.cost?.toString()
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...name, ...description, cost]
+    this.tags = [...name, ...description]
     next()
 })
 
 schema.pre('findOneAndUpdate', function (next) {
     const name = Object.keys(this._update.name || {}).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
-    const cost = this._update.cost?.toString()
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...name, ...cost, ...description]
+    this._update.tags = [...name, ...description]
     next()
 })
 
-module.exports = mongoose.model('Specialty', schema)
+module.exports = mongoose.model('Product', schema)

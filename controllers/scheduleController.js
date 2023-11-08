@@ -1,12 +1,19 @@
 const response = require('../helpers/response')
 const DoctorReservation = require('../models/DoctorReservation')
+const PatientHistory = require('../models/PatientHistory')
 const { convertStringToArrayRegExp } = require('../helpers/utils')
+const { BadRequestError } = require('../helpers/handlingErrors')
 
 
 exports.start = async (req, res) => {
     try {
         const id = req.params.id
-        console.log(id)
+        const schedule = await DoctorReservation.findById(id)
+        if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
+        if (schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_STARTED')
+        if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
+        await DoctorReservation.findByIdAndUpdate(id, { startedAt: Date.now(), stage: 'STARTED' })
+        await PatientHistory.create({ _id: id })
         response.success(200, { data: {}, message: 'SCHEDULE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -16,7 +23,13 @@ exports.start = async (req, res) => {
 exports.end = async (req, res) => {
     try {
         const id = req.params.id
-        console.log(id)
+        const body = req.body
+        const schedule = await DoctorReservation.findById(id)
+        if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
+        if (!schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_NOT_STARTED')
+        if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
+        await DoctorReservation.findByIdAndUpdate(id, { endedAt: Date.now(), stage: 'ENDED' })
+        await PatientHistory.findByIdAndUpdate(id, body)
         response.success(200, { data: {}, message: 'SCHEDULE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -27,8 +40,9 @@ exports.detail = async (req, res) => {
     try {
         const id = req.params.id
         const schedule = await DoctorReservation.findById(id)
-            .populate('createdBy', 'username -_id')
-            .populate('updatedBy', 'username -_id')
+            .populate('patient', '-_id')
+            .populate('doctor', '-_id')
+            .populate('reservation', '-_id')
         response.success(200, { data: schedule }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

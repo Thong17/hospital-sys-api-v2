@@ -1,12 +1,8 @@
 const mongoose = require('mongoose')
-const initialObject = require('./index')
 
 const schema = new mongoose.Schema(
     {
         bloodType: {
-            type: String,
-        },
-        sugarLevel: {
             type: String,
         },
         allergies: {
@@ -23,4 +19,4 @@ const schema = new mongoose.Schema(
     }
 )
 
-module.exports = mongoose.model('PatientProfile', schema)
+module.exports = mongoose.model('PatientDetail', schema)

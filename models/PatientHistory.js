@@ -1,18 +1,16 @@
 const mongoose = require('mongoose')
-const initialObject = require('./index')
-const Specialty = require('./Specialty')
-const Doctor = require('./Doctor')
+const Symptom = require('./Symptom')
 
 const schema = new mongoose.Schema(
     {
         symptoms: [{
             type: mongoose.Schema.ObjectId,
-            ref: 'Specialty',
+            ref: 'Symptom',
             validate: {
                 validator: (id) => {
                     return new Promise(async (resolve, reject) => {
                         try {
-                            const specialty = await Specialty.findById(id)
+                            const specialty = await Symptom.findById(id)
                             resolve(!!specialty)
                         } catch (error) {
                             reject(error)
@@ -22,23 +20,6 @@ const schema = new mongoose.Schema(
                 message: 'SYMPTOM_IS_NOT_EXIST'
             },
         }],
-        doctors: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'Doctor',
-            validate: {
-                validator: (id) => {
-                    return new Promise(async (resolve, reject) => {
-                        try {
-                            const doctor = await Doctor.findById(id)
-                            resolve(!!doctor)
-                        } catch (error) {
-                            reject(error)
-                        }
-                    })
-                },
-                message: 'DOCTOR_IS_NOT_EXIST'
-            },
-        },
         diagnose: {
             type: String
         },
@@ -59,11 +40,15 @@ const schema = new mongoose.Schema(
         attachments: {
             type: Array
         },
+        schedule: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'DoctorReservation',
+            required: [true, 'SCHEDULE_IS_REQUIRED'],
+        },
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
     },
-    { versionKey: '__v' }
 )
 
 module.exports = mongoose.model('PatientHistory', schema)
