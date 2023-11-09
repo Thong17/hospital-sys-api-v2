@@ -20,6 +20,21 @@ exports.start = async (req, res) => {
     }
 }
 
+exports.update = async (req, res) => {
+    try {
+        const id = req.params.id
+        const body = req.body
+        const schedule = await Schedule.findById(id)
+        if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
+        if (!schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_NOT_STARTED')
+        if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
+        await PatientHistory.findByIdAndUpdate(id, body)
+        response.success(200, { data: {}, message: 'PATIENT_HISTORY_HAS_BEEN_UPDATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
 exports.end = async (req, res) => {
     try {
         const id = req.params.id
