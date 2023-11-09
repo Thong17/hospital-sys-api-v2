@@ -1,7 +1,7 @@
 const { memoryStorage } = require('../../../configs/multer')
 const router = require('express').Router()
 const { activity } = require('../../../middlewares/security')
-const { create, _delete, list, detail, update, history, _export, _validate, _import } = require('../../../controllers/patientController')
+const { create, _delete, list, detail, update, record, history, _export, _validate, _import } = require('../../../controllers/patientController')
 
 
 router.post('/create', (...params) => activity(...params, 'PATIENT', 'CREATE'), (req, res) => {
@@ -18,6 +18,10 @@ router.put('/update/:id', (...params) => activity(...params, 'PATIENT', 'UPDATE'
 
 router.get('/detail/:id', (req, res) => {
     detail(req, res)
+})
+
+router.get('/record/:id', (req, res) => {
+    record(req, res)
 })
 
 router.get('/history/:id', (req, res) => {

@@ -47,7 +47,7 @@ const schema = new mongoose.Schema(
         }],
         condition: {
             type: String,
-            enum: ['HEALTHY', 'NEED_SCHEDULE', 'WEAK']
+            enum: ['HEALTHY', 'FOLLOW_UP']
         },
         comment: {
             type: String,

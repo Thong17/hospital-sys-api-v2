@@ -1,7 +1,9 @@
 const moment = require('moment')
 const response = require('../helpers/response')
 const Patient = require('../models/Patient')
+const PatientDetail = require('../models/PatientDetail')
 const History = require('../models/History')
+const Schedule = require('../models/Schedule')
 const { createPatientValidation, updatePatientValidation } = require('../validations/patientValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, readExcel, convertArrayMongo, convertStringToArrayRegExp } = require('../helpers/utils')
@@ -55,6 +57,24 @@ exports.detail = async (req, res) => {
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
         response.success(200, { data: patient }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.record = async (req, res) => {
+    try {
+        const id = req.params.id
+        const patient = await Patient.findById(id)
+        const detail = await PatientDetail.findById(id)
+        const records = await Schedule.find({ patient: id, stage: 'ENDED' })
+            .select('-_id -patient -approval -stage')
+            .populate('doctor', 'tags username -_id')
+            .populate({
+                path: 'patientRecord',
+                populate: 'treatments symptoms'
+            })
+        response.success(200, { data: { patient, records, detail } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

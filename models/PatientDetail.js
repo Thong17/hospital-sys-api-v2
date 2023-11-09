@@ -9,7 +9,7 @@ const schema = new mongoose.Schema(
             type: Array,
             default: []
         },
-        chronic: {
+        chronics: {
             type: Array,
             default: []
         },

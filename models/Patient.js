@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const initialObject = require('./index')
 const User = require('./User')
-const PatientHistory = require('./PatientHistory')
 const { encryptPassword } = require('../helpers/utils')
 
 const schema = new mongoose.Schema(
@@ -39,10 +38,6 @@ const schema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'PatientDetail',
         },
-        histories: [{
-            type: mongoose.Schema.ObjectId,
-            ref: 'PatientHistory',
-        }],
         ...initialObject
     },
     {
@@ -65,6 +60,7 @@ schema.post('save', async function (doc) {
         if (userLength > 0) return
         const password = await encryptPassword(`${doc?.username}${process.env.PASSWORD_DEFAULT}`)
         await User.create({ _id: doc?._id, username: doc?.username, password, segment: 'PATIENT' })
+        await PatientDetail.create({ _id: doc?._id })
     } catch (error) {
         console.error(error)
     }
