@@ -30,6 +30,10 @@ const schema = new mongoose.Schema(
             enum: ['PENDING', 'STARTED', 'ENDED'],
             default: 'PENDING'
         },
+        patientRecord: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'PatientHistory',
+        },
         startedAt: {
             type: Date,
         },

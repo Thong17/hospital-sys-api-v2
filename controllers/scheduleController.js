@@ -12,8 +12,8 @@ exports.start = async (req, res) => {
         if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
         if (schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_STARTED')
         if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
-        await Schedule.findByIdAndUpdate(id, { startedAt: Date.now(), stage: 'STARTED' })
-        await PatientHistory.create({ _id: id, schedule: id })
+        const patientHistory = await PatientHistory.create({ _id: id, schedule: id })
+        await Schedule.findByIdAndUpdate(id, { startedAt: Date.now(), stage: 'STARTED', patientRecord: patientHistory?._id })
         response.success(200, { data: {}, message: 'SCHEDULE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -58,6 +58,7 @@ exports.detail = async (req, res) => {
             .populate('patient', '-_id')
             .populate('doctor', '-_id')
             .populate('reservation', '-_id')
+            .populate('patientRecord', '-_id')
         response.success(200, { data: schedule }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
