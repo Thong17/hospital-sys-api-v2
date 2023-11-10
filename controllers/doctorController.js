@@ -95,7 +95,7 @@ exports.list = async (req, res) => {
             .sort({ username, createdAt })
             .populate('specialties', 'name')
 
-        const totalDoctor = await Doctor.count({ isDeleted: false })
+        const totalDoctor = await Doctor.count(query)
         response.success(200, { data: doctors, metaData: { skip, limit, total: totalDoctor } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

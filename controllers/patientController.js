@@ -114,7 +114,7 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ username, createdAt })
 
-        const totalPatient = await Patient.count({ isDeleted: false })
+        const totalPatient = await Patient.count(query)
         response.success(200, { data: patients, metaData: { skip, limit, total: totalPatient } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

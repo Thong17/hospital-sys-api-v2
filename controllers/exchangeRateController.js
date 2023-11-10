@@ -54,7 +54,7 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ lastName, firstName, createdAt })
 
-        const totalExchangeRate = await ExchangeRate.count({ isDeleted: false })
+        const totalExchangeRate = await ExchangeRate.count(query)
         response.success(200, { data: exchangeRates, metaData: { skip, limit, total: totalExchangeRate } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
