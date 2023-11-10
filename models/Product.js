@@ -41,6 +41,10 @@ const schema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Category'
         },
+        symptom: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Symptom'
+        },
         isStock: {
             type: Boolean,
             default: false
