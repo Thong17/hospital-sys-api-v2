@@ -10,7 +10,7 @@ exports.login = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const { username, password } = req.body
 
-        const user = await User.findOne({ username })
+        const user = await User.findOne({ username }).populate('role')
         if (!user) throw new UnauthorizedError('INCORRECT_USERNAME')
 
         const isMatched = await comparePassword(password, user.password)
@@ -23,8 +23,8 @@ exports.login = async (req, res) => {
             _id: user._id,
             username: user.username,
             segment: user.segment,
-            privilege: user.privilege,
-            navigation: user.navigation,
+            privilege: user.role?.privilege,
+            navigation: user.role?.navigation,
         }
         return response.success(200, { accessToken, refreshToken, data }, res)
     } catch (error) {

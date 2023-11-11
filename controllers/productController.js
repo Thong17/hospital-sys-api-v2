@@ -13,6 +13,14 @@ exports.create = async (req, res) => {
         const { error } = createProductValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
+        if (req.files && req.files.length > 0) {
+            body.images = req.files.map(item => ({ 
+                bucketName: item.bucketName,
+                filename: item.objectName,
+                mimetype: item.mimetype,
+                fileSize: item.size
+            }))
+        }
         const product = new Product(body)
         product.createdBy = req.user?._id
         await product.save()

@@ -1,10 +1,10 @@
-const { memoryStorage } = require('../../../configs/multer')
+const { memoryStorage, minioStorage } = require('../../../configs/multer')
 const router = require('express').Router()
 const { activity } = require('../../../middlewares/security')
 const { create, _delete, list, detail, update, history, _export, _validate, _import } = require('../../../controllers/productController')
 
 
-router.post('/create', (...params) => activity(...params, 'PRODUCT', 'CREATE'), (req, res) => {
+router.post('/create', minioStorage.array('images'), (...params) => activity(...params, 'PRODUCT', 'CREATE'), (req, res) => {
     create(req, res)
 })
 
