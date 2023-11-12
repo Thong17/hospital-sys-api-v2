@@ -126,9 +126,16 @@ schema.post('findOneAndUpdate', async function (doc) {
         const matchedIds = await Schedule.aggregate([
             {
                 $match: {
-                    $expr: {
-                        $eq: ["$updatedAt", "$createdAt"]
-                    }
+                    $and: [
+                        {
+                            reservation: doc?._id
+                        },
+                        {
+                            $expr: {
+                                $eq: ["$updatedAt", "$createdAt"]
+                            }
+                        }
+                    ]
                 }
             },
             {

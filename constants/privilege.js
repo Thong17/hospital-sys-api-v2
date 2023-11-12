@@ -174,6 +174,52 @@ exports.privilege = {
                 action: 'delete'
             },
         },
+    },
+    organize: {
+        product: {
+            list: {
+                route: 'product',
+                action: 'list'
+            },
+            detail: {
+                route: 'product',
+                action: 'detail'
+            },
+            create: {
+                route: 'product',
+                action: 'create'
+            },
+            update: {
+                route: 'product',
+                action: 'update'
+            },
+            delete: {
+                route: 'product',
+                action: 'delete'
+            },
+        },
+        clinic: {
+            list: {
+                route: 'clinic',
+                action: 'list'
+            },
+            detail: {
+                route: 'clinic',
+                action: 'detail'
+            },
+            create: {
+                route: 'clinic',
+                action: 'create'
+            },
+            update: {
+                route: 'clinic',
+                action: 'update'
+            },
+            delete: {
+                route: 'clinic',
+                action: 'delete'
+            },
+        },
     }
 }
 
@@ -197,10 +243,6 @@ exports.navigation = {
         },
     },
     operation: {
-        counter: {
-            menu: 'operation',
-            navbar: 'counter'
-        },
         reservation: {
             menu: 'operation',
             navbar: 'reservation'
@@ -208,6 +250,16 @@ exports.navigation = {
         schedule: {
             menu: 'operation',
             navbar: 'schedule'
+        },
+    },
+    organize: {
+        product: {
+            menu: 'organize',
+            navbar: 'product'
+        },
+        clinic: {
+            menu: 'organize',
+            navbar: 'clinic'
         },
     },
 }

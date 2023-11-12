@@ -51,7 +51,7 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ createdAt })
 
-        const totalCategory = await Category.count({ isDeleted: false })
+        const totalCategory = await Category.count(query)
         response.success(200, { data: category, metaData: { skip, limit, total: totalCategory } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

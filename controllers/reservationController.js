@@ -135,8 +135,9 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ appointmentDate, createdAt })
             .populate('patient', 'username contact -_id')
+            .populate('doctors', 'username contact -_id')
 
-        const totalReservation = await Reservation.count({ isDeleted: false })
+        const totalReservation = await Reservation.count(query)
         response.success(200, { data: reservation, metaData: { skip, limit, total: totalReservation } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

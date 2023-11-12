@@ -1,10 +1,8 @@
 const moment = require('moment')
 const response = require('../helpers/response')
-const Patient = require('../models/Patient')
-const PatientDetail = require('../models/PatientDetail')
+const Product = require('../models/Product')
 const History = require('../models/History')
-const Schedule = require('../models/Schedule')
-const { createPatientValidation, updatePatientValidation } = require('../validations/patientValidation')
+const { createProductValidation, updateProductValidation } = require('../validations/productValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, readExcel, convertArrayMongo, convertStringToArrayRegExp } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
@@ -12,13 +10,21 @@ const generateExcel = require('../configs/excel')
 
 exports.create = async (req, res) => {
     try {
-        const { error } = createPatientValidation.validate(req.body, { abortEarly: false })
+        const { error } = createProductValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
-        const patient = new Patient(body)
-        patient.createdBy = req.user?._id
-        await patient.save()
-        response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_CREATED' }, res)
+        if (req.files && req.files.length > 0) {
+            body.images = req.files.map(item => ({ 
+                bucketName: item.bucketName,
+                filename: item.objectName,
+                mimetype: item.mimetype,
+                fileSize: item.size
+            }))
+        }
+        const product = new Product(body)
+        product.createdBy = req.user?._id
+        await product.save()
+        response.success(200, { data: product, message: 'PRODUCT_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -29,8 +35,8 @@ exports._delete = async (req, res) => {
         const id = req.params.id
         const reason = req.query.reason ?? ''
         if (res.log) res.log.description = reason
-        const patient = await Patient.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user?._id })
-        response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_DELETED' }, res)
+        const product = await Product.findByIdAndUpdate(id, { isDeleted: true, updatedBy: req.user?._id })
+        response.success(200, { data: product, message: 'PRODUCT_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -38,13 +44,22 @@ exports._delete = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
-        const { error } = updatePatientValidation.validate(req.body, { abortEarly: false })
+        delete req.body.images
+        const { error } = createProductValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
+        if (req.files && req.files.length > 0) {
+            body.images = req.files.map(item => ({ 
+                bucketName: item.bucketName,
+                filename: item.objectName,
+                mimetype: item.mimetype,
+                fileSize: item.size
+            }))
+        }
         body.updatedBy = req.user?._id
-        const patient = await Patient.findByIdAndUpdate(id, body)
-        response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_UPDATED' }, res)
+        const product = await Product.findByIdAndUpdate(id, body)
+        response.success(200, { data: product, message: 'PRODUCT_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -53,28 +68,10 @@ exports.update = async (req, res) => {
 exports.detail = async (req, res) => {
     try {
         const id = req.params.id
-        const patient = await Patient.findById(id)
+        const product = await Product.findById(id)
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
-        response.success(200, { data: patient }, res)
-    } catch (error) {
-        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
-    }
-}
-
-exports.record = async (req, res) => {
-    try {
-        const id = req.params.id
-        const patient = await Patient.findById(id)
-        const detail = await PatientDetail.findById(id)
-        const records = await Schedule.find({ patient: id, stage: 'ENDED' })
-            .select('-_id -patient -approval -stage')
-            .populate('doctor', 'tags username -_id')
-            .populate({
-                path: 'patientRecord',
-                populate: 'treatments symptoms'
-            })
-        response.success(200, { data: { patient, records, detail } }, res)
+        response.success(200, { data: product }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -83,7 +80,7 @@ exports.record = async (req, res) => {
 exports.history = async (req, res) => {
     try {
         const id = req.params.id
-        const histories = await History.find({ moduleId: id, module: 'PATIENT' })
+        const histories = await History.find({ moduleId: id, module: 'PRODUCT' })
             .populate('createdBy', 'username -_id')
             .sort({ createdAt: 'desc' })
             
@@ -109,13 +106,13 @@ exports.list = async (req, res) => {
             }
         }
 
-        const patients = await Patient.find(query)
+        const products = await Product.find(query)
             .skip((skip) * limit)
             .limit(limit)
             .sort({ username, createdAt })
 
-        const totalPatient = await Patient.count(query)
-        response.success(200, { data: patients, metaData: { skip, limit, total: totalPatient } }, res)
+        const totalProduct = await Product.count(query)
+        response.success(200, { data: products, metaData: { skip, limit, total: totalProduct } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -151,11 +148,11 @@ exports._export = async (req, res) => {
                 width: 27,
             },
             { 
-                key: 'lastName', 
+                key: 'username', 
                 width: 27,
             },
             { 
-                key: 'firstName', 
+                key: 'fullName', 
                 width: 27,
             },
             { 
@@ -208,7 +205,7 @@ exports._export = async (req, res) => {
             }
         ]
 
-        let columnHeader = { no: 'NO', id: 'ID', lastName: 'LAST_NAME', firstName: 'FIRST_NAME', gender: 'GENDER', dateOfBirth: 'DATE_OF_BIRTH', specialty: 'SPECIALTY', rate: 'RATE', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', updatedBy: 'UPDATED_BY', createdAt: 'CREATED_BY', updatedAt: 'UPDATED_AT', tags: 'TAGS' }
+        let columnHeader = { no: 'NO', id: 'ID', username: 'LAST_NAME', fullName: 'FIRST_NAME', gender: 'GENDER', dateOfBirth: 'DATE_OF_BIRTH', specialty: 'SPECIALTY', rate: 'RATE', status: 'STATUS', description: 'DESCRIPTION', isDeleted: 'IS_DELETED', createdBy: 'CREATED_BY', updatedBy: 'UPDATED_BY', createdAt: 'CREATED_BY', updatedAt: 'UPDATED_AT', tags: 'TAGS' }
         languages.forEach(item => {
             columnHeader[`role${item}`] = `ROLE.${item.toUpperCase()}`
         })
@@ -218,8 +215,8 @@ exports._export = async (req, res) => {
                 let obj = {
                     no: index + 1,
                     id: item._id.toString(),
-                    lastName: item.lastName,
-                    firstName: item.firstName,
+                    username: item.username,
+                    fullName: item.fullName,
                     gender: item.gender,
                     dateOfBirth: moment(item.dateOfBirth).format('YYYY MMM DD'),
                     specialty: JSON.stringify(item.specialty),
@@ -238,17 +235,17 @@ exports._export = async (req, res) => {
                 return obj
             })
         }
-        const patients = await Patient.find(query).sort({ name, createdAt })
+        const products = await Product.find(query).sort({ name, createdAt })
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
             .populate('role', 'name -_id')
-        const file = await generateExcel(columns, columnHeader, mapRowData(patients))
+        const file = await generateExcel(columns, columnHeader, mapRowData(products))
 
         const now = moment().format('YYYY-MM-DD HH:mm:ss')
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        res.setHeader('Content-Disposition', `attachment; filename=patient_${now}.xlsx`)
+        res.setHeader('Content-Disposition', `attachment; filename=product_${now}.xlsx`)
         
-        response.success(200, { file, name: `PATIENT_${now}.xlsx` }, res)
+        response.success(200, { file, name: `PRODUCT_${now}.xlsx` }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -262,8 +259,8 @@ exports._validate = async (req, res) => {
         let mappedData = convertedList.map(item => ({ data: item }))
         for (let i = 0; i < convertedList.length; i++) {
             const body = convertedList[i]
-            const patient = new Patient(body)
-            await patient.validate()
+            const product = new Product(body)
+            await product.validate()
                 .then(_data => {
                     mappedData[i]['result'] = {
                         status: 'SUCCESS'
@@ -285,8 +282,8 @@ exports._validate = async (req, res) => {
 exports._import = async (req, res) => {
     try {
         const data = req.body
-        const result = await Patient.create(data)
-        response.success(200, { data: { data: result }, message: 'PATIENT_HAS_BEEN_IMPORTED' }, res)
+        const result = await Product.create(data)
+        response.success(200, { data: { data: result }, message: 'PRODUCT_HAS_BEEN_IMPORTED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }

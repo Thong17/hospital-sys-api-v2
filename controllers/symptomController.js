@@ -51,7 +51,7 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ createdAt })
 
-        const totalSymptom = await Symptom.count({ isDeleted: false })
+        const totalSymptom = await Symptom.count(query)
         response.success(200, { data: symptom, metaData: { skip, limit, total: totalSymptom } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
