@@ -12,7 +12,7 @@ router.delete('/delete/:id', (...params) => activity(...params, 'PRODUCT', 'DELE
     _delete(req, res)
 })
 
-router.put('/update/:id', (...params) => activity(...params, 'PRODUCT', 'UPDATE'), (req, res) => {
+router.put('/update/:id', minioStorage.array('images'), (...params) => activity(...params, 'PRODUCT', 'UPDATE'), (req, res) => {
     update(req, res)
 })
 

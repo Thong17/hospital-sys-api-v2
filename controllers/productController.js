@@ -44,10 +44,19 @@ exports._delete = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
-        const { error } = updateProductValidation.validate(req.body, { abortEarly: false })
+        delete req.body.images
+        const { error } = createProductValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
+        if (req.files && req.files.length > 0) {
+            body.images = req.files.map(item => ({ 
+                bucketName: item.bucketName,
+                filename: item.objectName,
+                mimetype: item.mimetype,
+                fileSize: item.size
+            }))
+        }
         body.updatedBy = req.user?._id
         const product = await Product.findByIdAndUpdate(id, body)
         response.success(200, { data: product, message: 'PRODUCT_HAS_BEEN_UPDATED' }, res)

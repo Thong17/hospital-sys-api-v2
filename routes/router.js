@@ -7,9 +7,9 @@ router.get('/upload/:filename', async (req, res) => {
     try {
         const filename = req.params.filename
         const bucketName = req.query.bucket ?? process.env.MINIO_BUCKET
-        const mimeType = req.query.mimeType ?? 'image/jpeg'
+        const mimetype = req.query.mimetype ?? 'image/jpeg'
         const stream = await minioClient.getObject(bucketName, filename !== 'null' ? filename : 'default.png')
-        res.set('Content-Type', mimeType)
+        res.set('Content-Type', mimetype)
         stream.pipe(res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
