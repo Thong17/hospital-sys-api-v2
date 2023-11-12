@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const User = require('../models/User')
+const Role = require('../models/Role')
 const { encryptPassword } = require('../helpers/utils')
 
 const main = async () => {
