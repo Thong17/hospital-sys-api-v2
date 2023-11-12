@@ -47,7 +47,8 @@ const schema = new mongoose.Schema(
         }],
         condition: {
             type: String,
-            enum: ['HEALTHY', 'FOLLOW_UP']
+            enum: ['HEALTHY', 'FOLLOW_UP'],
+            default: 'HEALTHY'
         },
         comment: {
             type: String,
