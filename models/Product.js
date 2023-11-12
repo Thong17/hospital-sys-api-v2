@@ -41,9 +41,13 @@ const schema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Category'
         },
-        symptom: {
+        symptoms: [{
             type: mongoose.Schema.ObjectId,
             ref: 'Symptom'
+        }],
+        images: {
+            type: Array,
+            default: []
         },
         isStock: {
             type: Boolean,

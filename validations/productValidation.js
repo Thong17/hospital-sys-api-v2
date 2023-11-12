@@ -13,7 +13,7 @@ const createProductValidation = Joi.object({
     category: Joi.string()
         .optional(),
 
-    symptom: Joi.string()
+    symptoms: Joi.array()
         .optional(),
 
     code: Joi.string()
@@ -40,7 +40,7 @@ const updateProductValidation = Joi.object({
     category: Joi.string()
         .optional(),
 
-    symptom: Joi.string()
+    symptoms: Joi.array()
         .optional(),
 
     code: Joi.string()
