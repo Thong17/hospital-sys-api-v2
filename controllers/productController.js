@@ -45,7 +45,7 @@ exports._delete = async (req, res) => {
 exports.update = async (req, res) => {
     try {
         delete req.body.images
-        const { error } = createProductValidation.validate(req.body, { abortEarly: false })
+        const { error } = updateProductValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
