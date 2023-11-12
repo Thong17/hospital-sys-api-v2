@@ -5,10 +5,13 @@ const security = require('../middlewares/security')
 
 router.get('/upload/:filename', async (req, res) => {
     try {
-        const filename = req.params.filename
-        const bucketName = req.query.bucket ?? process.env.MINIO_BUCKET
-        const mimetype = req.query.mimetype ?? 'image/jpeg'
-        const stream = await minioClient.getObject(bucketName, filename !== 'null' ? filename : 'default.png')
+        let filename = req.params.filename
+        let bucketName = req.query.bucket
+        let mimetype = req.query.mimetype
+        if (['null', 'undefined'].includes(filename)) filename = 'default.png'
+        if (['null', 'undefined'].includes(bucketName)) bucketName = process.env.MINIO_BUCKET
+        if (['null', 'undefined'].includes(mimetype)) mimetype = 'image/jpeg'
+        const stream = await minioClient.getObject(bucketName, filename)
         res.set('Content-Type', mimetype)
         stream.pipe(res)
     } catch (error) {
