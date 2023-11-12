@@ -35,7 +35,7 @@ main()
                     user: true,
                 }
             }
-            const role = await Role.create({ name: { English: 'Super Admin', privilege, navigation } })
+            const role = await Role.create({ name: { English: 'Super Admin' }, privilege, navigation })
             const password = await encryptPassword(`SuperAdmin${process.env.PASSWORD_DEFAULT}`)
             await User.create({ username: 'SuperAdmin', role: role?._id, password, status: true })
         }
