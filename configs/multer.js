@@ -51,5 +51,6 @@ module.exports = {
         fileFilter: (_req, _file, cb) => {
             cb(null, true)
         }
-    })
+    }),
+    minioClient
 }
