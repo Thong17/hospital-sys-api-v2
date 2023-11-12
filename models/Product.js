@@ -45,6 +45,10 @@ const schema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Symptom'
         }],
+        stocks: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'ProductStock'
+        }],
         images: {
             type: Array,
             default: []
@@ -75,6 +79,7 @@ schema.pre('save', function (next) {
 })
 
 schema.pre('findOneAndUpdate', function (next) {
+    if (!this._update.name && !this._update.description) return next()
     const name = Object.keys(this._update.name || {}).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     this._update.tags = [...name, ...description]

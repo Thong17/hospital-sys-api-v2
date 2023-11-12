@@ -110,6 +110,7 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ username, createdAt })
+            .populate('stocks', '-_id remain alertAt expireAt')
 
         const totalProduct = await Product.count(query)
         response.success(200, { data: products, metaData: { skip, limit, total: totalProduct } }, res)
