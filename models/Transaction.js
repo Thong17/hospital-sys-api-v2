@@ -3,6 +3,10 @@ const ExchangeRate = require('./ExchangeRate')
 
 const schema = mongoose.Schema(
     {
+        description: {
+            type: String,
+            required: [true, 'DESCRIPTION_IS_REQUIRED'],
+        },
         price: {
             type: Number,
             default: 0
@@ -34,12 +38,8 @@ const schema = mongoose.Schema(
             default: 0
         },
         discount: {
-            type: Object,
-            default: {
-                value: 0,
-                type: 'PCT',
-                isFixed: false
-            }
+            type: Number,
+            default: 0
         },
         note: {
             type: String,
@@ -49,7 +49,7 @@ const schema = mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Product'
         },
-        patient: {
+        customer: {
             type: mongoose.Schema.ObjectId,
             ref: 'Patient'
         },
