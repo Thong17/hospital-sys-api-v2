@@ -14,6 +14,10 @@ const schema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        symbol: {
+            type: String,
+            default: '&#36;'
+        },
         description: {
             type: String
         },
