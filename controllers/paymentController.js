@@ -51,6 +51,13 @@ exports.detail = async (req, res) => {
         const payment = await Payment.findById(id)
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
+            .populate({
+                path: 'transactions',
+                populate: {
+                    path: 'product',
+                    select: 'images -_id'
+                }
+            })
         response.success(200, { data: payment }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -64,7 +71,7 @@ exports.list = async (req, res) => {
         const skip = page - 1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
 
-        let query = { isDeleted: false }
+        let query = {}
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -75,7 +82,22 @@ exports.list = async (req, res) => {
         const payment = await Payment.find(query)
             .skip((skip) * limit)
             .limit(limit)
-            .sort({ appointmentDate, createdAt })
+            .sort({ createdAt })
+            .select('invoice schedule total subtotal stage createdAt')
+            .populate({
+                path: 'schedule',
+                select: 'endedAt patient doctor -_id',
+                populate: [
+                    {
+                        path: 'patient',
+                        select: 'username contact -_id'
+                    },
+                    {
+                        path: 'doctor',
+                        select: 'username contact -_id'
+                    }
+                ]
+            })
 
         const totalPayment = await Payment.count(query)
         response.success(200, { data: payment, metaData: { skip, limit, total: totalPayment } }, res)
