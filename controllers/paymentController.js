@@ -47,6 +47,20 @@ exports.update = async (req, res) => {
     }
 }
 
+exports.complete = async (req, res) => {
+    try {
+        const id = req.params.id
+        const body = req.body
+        body.updatedBy = req.user?._id
+        body.stage = 'COMPLETED'
+        const payment = await Payment.findByIdAndUpdate(id, body, { new: true })
+        response.success(200, { data: payment, message: 'PAYMENT_HAS_BEEN_COMPLETED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+
 exports.appendTransaction = async (req, res) => {
     try {
         const { error } = createTransactionValidation.validate(req.body, { abortEarly: false })
