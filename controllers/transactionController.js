@@ -20,6 +20,7 @@ exports.create = async (req, res) => {
         transaction.stocks = stocks
         await transaction.save()
         await transaction.populate('currency', 'symbol')
+        await transaction.populate('product', 'images -_id')
         response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
