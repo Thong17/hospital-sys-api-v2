@@ -37,9 +37,13 @@ const schema = mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Drawer'
         },
-        patient: {
+        customer: {
             type: mongoose.Schema.ObjectId,
             ref: 'Patient'
+        },
+        schedule: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Schedule'
         },
         transactions: [{
             type: mongoose.Schema.ObjectId,
