@@ -33,6 +33,10 @@ const schema = mongoose.Schema(
             type: Number,
             default: 0
         },
+        cost: {
+            type: Number,
+            default: 0
+        },
         quantity: {
             type: Number,
             default: 0
@@ -44,6 +48,9 @@ const schema = mongoose.Schema(
         note: {
             type: String,
             default: ''
+        },
+        stocks: {
+            type: Array,
         },
         product: {
             type: mongoose.Schema.ObjectId,

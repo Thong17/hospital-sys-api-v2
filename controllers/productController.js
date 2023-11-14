@@ -71,6 +71,7 @@ exports.detail = async (req, res) => {
         const product = await Product.findById(id)
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
+            .populate('currency', 'symbol')
         response.success(200, { data: product }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

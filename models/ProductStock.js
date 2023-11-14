@@ -80,13 +80,16 @@ schema.pre('save', function (next) {
     next()
 })
 
-schema.post('save', async function (doc) {
-    try {
-        await Product.findByIdAndUpdate(doc?.product, { $push: { stocks: doc?._id } })
-    } catch (error) {
-        console.error(error)
-    }
-})
+schema.methods.pushStock = function(productId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            product = await Product.findByIdAndUpdate(productId, { $push: { stocks: this?._id } }, { new: true })
+            resolve(product)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
 schema.pre('findOneAndUpdate', function (next) {
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []

@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const xlsx = require('xlsx')
 const bcrypt = require('bcrypt')
-const { TokenExpiredError } = require('./handlingErrors')
+const { TokenExpiredError, ValidationError } = require('./handlingErrors')
 
 module.exports = utils = {
     createHash: (str) => {
@@ -97,5 +97,34 @@ module.exports = utils = {
     convertStringToArrayRegExp: (value) => {
         if (typeof value !== 'string') return []
         return value?.split(' ').filter(Boolean).map(value => new RegExp(value))
+    },
+    transactionProductStock: async (product, quantity, session) => {
+        const ProductStock = require('../models/ProductStock')
+        return new Promise( async (resolve, reject) => {
+            try {
+                let transactionQuantity = quantity
+                const transactionStocks = []
+                const stocks = await ProductStock.find({ product }).sort({ createdAt: 'asc' })
+                for (let i = 0; i < stocks.length; i++) {
+                    const stock = stocks[i]
+                    if (stock.remain <= 0) break
+                    if (stock.remain < transactionQuantity) {
+                        transactionStocks.push({ stockId: stock._id, quantity: stock.remain })
+                        transactionQuantity-=stock.remain
+                        stock.remain = 0
+                        await stock.save()
+                        break
+                    }
+                    transactionStocks.push({ stockId: stock._id, quantity: transactionQuantity })
+                    stock.remain -= transactionQuantity
+                    transactionQuantity = 0
+                    await stock.save()
+                    return resolve(transactionStocks)
+                }
+                if (transactionQuantity > 0) throw new ValidationError('PRODUCT_OUT_OF_STOCK', {})
+            } catch (error) {
+                reject(error)
+            }
+        })
     }
 }

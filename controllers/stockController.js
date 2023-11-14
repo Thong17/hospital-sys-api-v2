@@ -15,6 +15,7 @@ exports.create = async (req, res) => {
         const stock = new Stock(body)
         stock.createdBy = req.user?._id
         await stock.save()
+        await stock.pushStock(body.product)
         response.success(200, { data: stock, message: 'STOCK_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
