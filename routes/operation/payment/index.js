@@ -1,13 +1,22 @@
 const router = require('express').Router()
 const { activity } = require('../../../middlewares/security')
-const { create, _delete, list, detail, update } = require('../../../controllers/paymentController')
+const { create, _delete, list, detail, update, appendTransaction, removeTransaction } = require('../../../controllers/paymentController')
 
 
 router.post('/create', (...params) => activity(...params, 'PAYMENT', 'CREATE'), (req, res) => {
     create(req, res)
 })
+
 router.put('/update/:id', (...params) => activity(...params, 'PAYMENT', 'UPDATE'), (req, res) => {
     update(req, res)
+})
+
+router.put('/transaction/append/:id', (...params) => activity(...params, 'PAYMENT', 'APPEND'), (req, res) => {
+    appendTransaction(req, res)
+})
+
+router.put('/transaction/remove/:id', (...params) => activity(...params, 'PAYMENT', 'REMOVE'), (req, res) => {
+    removeTransaction(req, res)
 })
 
 router.get('/detail/:id', (req, res) => {

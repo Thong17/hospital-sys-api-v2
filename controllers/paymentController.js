@@ -1,8 +1,10 @@
 const response = require('../helpers/response')
 const Payment = require('../models/Payment')
+const Transaction = require('../models/Transaction')
 const { createPaymentValidation, updatePaymentValidation } = require('../validations/paymentValidation')
+const { createTransactionValidation } = require('../validations/transactionValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
-const { extractJoiErrors, convertStringToArrayRegExp } = require('../helpers/utils')
+const { extractJoiErrors, convertStringToArrayRegExp, createTransactionStock, reverseTransactionStock } = require('../helpers/utils')
 
 
 exports.create = async (req, res) => {
@@ -40,6 +42,43 @@ exports.update = async (req, res) => {
         body.updatedBy = req.user?._id
         const payment = await Payment.findByIdAndUpdate(id, body, { new: true })
         response.success(200, { data: payment, message: 'PAYMENT_HAS_BEEN_UPDATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.appendTransaction = async (req, res) => {
+    try {
+        const { error } = createTransactionValidation.validate(req.body, { abortEarly: false })
+        if (error) throw new ValidationError(error.message, extractJoiErrors(error))
+        
+        const body = req.body
+        const transaction = new Transaction(body)
+        transaction.createdBy = req.user?._id
+        const totalPerQty = transaction.price - (transaction.discount * transaction.price / 100)
+        transaction.total = totalPerQty * transaction.quantity
+
+        const stocks = await createTransactionStock(body.product, body.quantity)
+        transaction.stocks = stocks
+        await transaction.save()
+        await transaction.populate('currency', 'symbol')
+        await transaction.populate('product', 'images -_id')
+        await transaction.pushPayment(body.schedule)
+        response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_CREATED' }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.removeTransaction = async (req, res) => {
+    try {
+        const id = req.params.id
+        const { transactionId, reason } = req.body || {}
+        if (res.log) res.log.description = reason
+        const transaction = await reverseTransactionStock(transactionId)
+        await transaction.pullPayment(id)
+        await Transaction.findByIdAndDelete(transactionId)
+        response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
@@ -83,7 +122,7 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ createdAt })
-            .select('invoice schedule total subtotal stage createdAt')
+            .select('invoice schedule total subtotal stage createdAt product')
             .populate({
                 path: 'schedule',
                 select: 'endedAt patient doctor -_id',

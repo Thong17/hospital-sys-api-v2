@@ -48,10 +48,8 @@ exports._delete = async (req, res) => {
         const reason = req.query.reason ?? ''
         if (res.log) res.log.description = reason
         const transaction = await reverseTransactionStock(id)
-        transaction.stage = 'REMOVED'
-        transaction.updatedBy = req.user?._id
         await transaction.pullSchedule(transaction.schedule)
-        await transaction.save()
+        await Transaction.findByIdAndDelete(id)
         response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_DELETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

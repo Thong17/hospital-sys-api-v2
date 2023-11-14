@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schedule = require('./Schedule')
+const Payment = require('./Payment')
 const ExchangeRate = require('./ExchangeRate')
 
 const schema = mongoose.Schema(
@@ -92,6 +93,28 @@ schema.methods.pullSchedule = function(scheduleId) {
         try {
             schedule = await Schedule.findByIdAndUpdate(scheduleId, { $pull: { transactions: this?._id } }, { new: true })
             resolve(schedule)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+schema.methods.pushPayment = function(paymentId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            payment = await Payment.findByIdAndUpdate(paymentId, { $push: { transactions: this?._id } }, { new: true })
+            resolve(payment)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+schema.methods.pullPayment = function(paymentId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            payment = await Payment.findByIdAndUpdate(paymentId, { $pull: { transactions: this?._id } }, { new: true })
+            resolve(payment)
         } catch (error) {
             reject(error)
         }
