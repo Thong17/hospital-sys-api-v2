@@ -98,7 +98,7 @@ module.exports = utils = {
         if (typeof value !== 'string') return []
         return value?.split(' ').filter(Boolean).map(value => new RegExp(value))
     },
-    transactionProductStock: async (product, quantity, session) => {
+    createTransactionStock: async (product, quantity) => {
         const ProductStock = require('../models/ProductStock')
         return new Promise( async (resolve, reject) => {
             try {
@@ -122,6 +122,24 @@ module.exports = utils = {
                     return resolve(transactionStocks)
                 }
                 if (transactionQuantity > 0) throw new ValidationError('PRODUCT_OUT_OF_STOCK', {})
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
+    reverseTransactionStock: (transactionId) => {
+        const ProductStock = require('../models/ProductStock')
+        const Transaction = require('../models/Transaction')
+        return new Promise(async (resolve, reject) => {
+            try {
+                const transaction = await Transaction.findById(transactionId)
+                if (!transaction) reject(new Error('TRANSACTION_NOT_FOUND'))
+                for (let index = 0; index < transaction.stocks?.length; index++) {
+                    const transactionStock = transaction.stocks[index]
+                    const stock = await ProductStock.findById(transactionStock.stockId)
+                    await ProductStock.findByIdAndUpdate(transactionStock.stockId, { remain: stock.remain + transactionStock.quantity }, { new: true })
+                }
+                resolve(transaction)
             } catch (error) {
                 reject(error)
             }

@@ -64,6 +64,11 @@ const schema = mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Schedule'
         },
+        stage: {
+            type: String,
+            enum: ['PENDING', 'COMPLETED', 'REMOVED'],
+            default: 'PENDING'
+        },
     },
     {
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
