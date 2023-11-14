@@ -38,7 +38,6 @@ exports.update = async (req, res) => {
         const id = req.params.id
         const body = req.body
         body.updatedBy = req.user?._id
-        if (body.doctors?.length > 0) body.stage = 'PENDING'
         const payment = await Payment.findByIdAndUpdate(id, body, { new: true })
         response.success(200, { data: payment, message: 'PAYMENT_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
@@ -52,9 +51,6 @@ exports.detail = async (req, res) => {
         const payment = await Payment.findById(id)
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
-            .populate('specialties', 'name')
-            .populate('doctors', 'lastName firstName contact')
-            .populate('patient', 'username contact')
         response.success(200, { data: payment }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -66,16 +62,9 @@ exports.list = async (req, res) => {
         const page = parseInt(req.query.page ?? 1)
         const limit = parseInt(req.query.limit ?? 5)
         const skip = page - 1
-        const appointmentDate = req.query.appointmentDate === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
 
         let query = { isDeleted: false }
-        if (req.user?.segment === 'DOCTOR') {
-            query['stage'] = 'PENDING'
-            query['doctors'] = {
-                $in: req.user?._id
-            }
-        }
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -87,8 +76,6 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ appointmentDate, createdAt })
-            .populate('patient', 'username contact -_id')
-            .populate('doctors', 'username contact -_id')
 
         const totalPayment = await Payment.count(query)
         response.success(200, { data: payment, metaData: { skip, limit, total: totalPayment } }, res)

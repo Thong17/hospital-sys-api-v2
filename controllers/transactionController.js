@@ -21,6 +21,7 @@ exports.create = async (req, res) => {
         await transaction.save()
         await transaction.populate('currency', 'symbol')
         await transaction.populate('product', 'images -_id')
+        await transaction.pushSchedule(body.schedule)
         response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -49,6 +50,7 @@ exports._delete = async (req, res) => {
         const transaction = await reverseTransactionStock(id)
         transaction.stage = 'REMOVED'
         transaction.updatedBy = req.user?._id
+        await transaction.pullSchedule(transaction.schedule)
         await transaction.save()
         response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_DELETED' }, res)
     } catch (error) {

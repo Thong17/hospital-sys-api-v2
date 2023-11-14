@@ -59,6 +59,13 @@ exports.detail = async (req, res) => {
             .populate('doctor', '-_id')
             .populate('reservation', '-_id')
             .populate('patientRecord', '-_id')
+            .populate({
+                path: 'transactions',
+                populate: {
+                    path: 'product',
+                    select: 'images -_id'
+                }
+            })
         response.success(200, { data: schedule }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

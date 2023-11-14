@@ -25,6 +25,10 @@ const schema = new mongoose.Schema(
             ref: 'Reservation',
             required: [true, 'RESERVATION_IS_REQUIRED'],
         },
+        transactions: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'Transaction',
+        }],
         stage: {
             type: String,
             enum: ['PENDING', 'STARTED', 'ENDED'],

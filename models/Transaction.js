@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Schedule = require('./Schedule')
 const ExchangeRate = require('./ExchangeRate')
 
 const schema = mongoose.Schema(
@@ -74,5 +75,27 @@ const schema = mongoose.Schema(
         timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
     }
 )
+
+schema.methods.pushSchedule = function(scheduleId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            schedule = await Schedule.findByIdAndUpdate(scheduleId, { $push: { transactions: this?._id } }, { new: true })
+            resolve(schedule)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+schema.methods.pullSchedule = function(scheduleId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            schedule = await Schedule.findByIdAndUpdate(scheduleId, { $pull: { transactions: this?._id } }, { new: true })
+            resolve(schedule)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
 module.exports = mongoose.model('Transaction', schema)
