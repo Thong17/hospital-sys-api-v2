@@ -45,7 +45,7 @@ exports._delete = async (req, res) => {
 exports.update = async (req, res) => {
     try {
         delete req.body.images
-        const { error } = createProductValidation.validate(req.body, { abortEarly: false })
+        const { error } = updateProductValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const id = req.params.id
         const body = req.body
@@ -71,6 +71,7 @@ exports.detail = async (req, res) => {
         const product = await Product.findById(id)
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
+            .populate('currency', 'symbol')
         response.success(200, { data: product }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -110,6 +111,8 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ username, createdAt })
+            .populate('stocks', '-_id remain alertAt expireAt')
+            .populate('currency', 'symbol')
 
         const totalProduct = await Product.count(query)
         response.success(200, { data: products, metaData: { skip, limit, total: totalProduct } }, res)

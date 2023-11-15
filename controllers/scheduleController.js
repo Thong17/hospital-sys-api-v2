@@ -3,6 +3,7 @@ const Schedule = require('../models/Schedule')
 const PatientHistory = require('../models/PatientHistory')
 const { convertStringToArrayRegExp } = require('../helpers/utils')
 const { BadRequestError } = require('../helpers/handlingErrors')
+const Payment = require('../models/Payment')
 
 
 exports.start = async (req, res) => {
@@ -39,12 +40,23 @@ exports.end = async (req, res) => {
     try {
         const id = req.params.id
         const body = req.body
-        const schedule = await Schedule.findById(id)
+        const schedule = await Schedule.findById(id).populate('transactions')
         if (!schedule) throw new BadRequestError('SCHEDULE_NOT_EXIST')
         if (!schedule.startedAt) throw new BadRequestError('SCHEDULE_HAS_NOT_STARTED')
         if (schedule.endedAt) throw new BadRequestError('SCHEDULE_HAS_ALREADY_ENDED')
         await Schedule.findByIdAndUpdate(id, { endedAt: Date.now(), stage: 'ENDED' })
         await PatientHistory.findByIdAndUpdate(id, body)
+        const total = schedule.transactions?.reduce((accumulator, currentValue) => {
+            return accumulator + currentValue.total
+        }, 0)
+        const payment = {
+            total,
+            subtotal: total,
+            schedule: id,
+            transactions: schedule.transactions,
+            createdBy: req.user?._id
+        }
+        await Payment.create(payment)
         response.success(200, { data: {}, message: 'SCHEDULE_HAS_BEEN_UPDATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -59,6 +71,13 @@ exports.detail = async (req, res) => {
             .populate('doctor', '-_id')
             .populate('reservation', '-_id')
             .populate('patientRecord', '-_id')
+            .populate({
+                path: 'transactions',
+                populate: {
+                    path: 'product',
+                    select: 'images -_id'
+                }
+            })
         response.success(200, { data: schedule }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)

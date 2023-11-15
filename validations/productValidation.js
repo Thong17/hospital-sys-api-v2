@@ -17,7 +17,8 @@ const createProductValidation = Joi.object({
         .optional(),
 
     code: Joi.string()
-        .optional(),
+        .optional()
+        .allow(''),
 
     isStock: Joi.boolean().optional(),
 
@@ -44,7 +45,8 @@ const updateProductValidation = Joi.object({
         .optional(),
 
     code: Joi.string()
-        .optional(),
+        .optional()
+        .allow(''),
 
     isStock: Joi.boolean().optional(),
 

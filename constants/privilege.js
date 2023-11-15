@@ -220,6 +220,52 @@ exports.privilege = {
                 action: 'delete'
             },
         },
+    },
+    pos: {
+        sale: {
+            list: {
+                route: 'sale',
+                action: 'list'
+            },
+            detail: {
+                route: 'sale',
+                action: 'detail'
+            },
+            create: {
+                route: 'sale',
+                action: 'create'
+            },
+            update: {
+                route: 'sale',
+                action: 'update'
+            },
+            delete: {
+                route: 'sale',
+                action: 'delete'
+            },
+        },
+        payment: {
+            list: {
+                route: 'payment',
+                action: 'list'
+            },
+            detail: {
+                route: 'payment',
+                action: 'detail'
+            },
+            create: {
+                route: 'payment',
+                action: 'create'
+            },
+            update: {
+                route: 'payment',
+                action: 'update'
+            },
+            delete: {
+                route: 'payment',
+                action: 'delete'
+            },
+        },
     }
 }
 
@@ -260,6 +306,16 @@ exports.navigation = {
         clinic: {
             menu: 'organize',
             navbar: 'clinic'
+        },
+    },
+    pos: {
+        sale: {
+            menu: 'pos',
+            navbar: 'sale'
+        },
+        payment: {
+            menu: 'pos',
+            navbar: 'payment'
         },
     },
 }

@@ -1,21 +1,11 @@
 const mongoose = require('mongoose')
 const initialObject = require('./index')
 const ExchangeRate = require('./ExchangeRate')
+const Product = require('./Product')
 
 const schema = new mongoose.Schema(
     {
-        name: {
-            type: Object,
-            required: [true, 'NAME_IS_REQUIRED'],
-            validate: {
-                validator: async function(name) {
-                    const count = await this.model('Symptom').countDocuments({ name })
-                    return count === 0
-                },
-                message: 'NAME_IS_ALREADY_EXIST'
-            }
-        },
-        price: {
+        cost: {
             type: Number,
             require: true
         },
@@ -37,31 +27,44 @@ const schema = new mongoose.Schema(
                 message: 'EXCHANGE_RATE_IS_NOT_EXIST'
             },
         },
-        category: {
+        product: {
             type: mongoose.Schema.ObjectId,
-            ref: 'Category'
+            ref: 'product',
+            required: [true, 'PRODUCT_IS_REQUIRED'],
+            validate: {
+                validator: (id) => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            const product = await Product.findById(id)
+                            resolve(!!product)
+                        } catch (error) {
+                            reject(error)
+                        }
+                    })
+                },
+                message: 'PRODUCT_IS_NOT_EXIST'
+            },
         },
-        symptoms: [{
-            type: mongoose.Schema.ObjectId,
-            ref: 'Symptom'
-        }],
-        stocks: [{
-            type: mongoose.Schema.ObjectId,
-            ref: 'ProductStock'
-        }],
-        images: {
-            type: Array,
-            default: []
+        quantity: {
+            type: Number,
+            require: true
         },
-        isStock: {
-            type: Boolean,
-            default: false
+        remain: {
+            type: Number,
+            default: 0
+        },
+        alertAt: {
+            type: Number,
+            default: 50
+        },
+        expireAt: {
+            type: Date
         },
         code: {
             type: String,
             default: ''
         },
-        description: {
+        note: {
             type: String
         },
         ...initialObject
@@ -72,18 +75,26 @@ const schema = new mongoose.Schema(
 )
 
 schema.pre('save', function (next) {
-    const name = Object.keys(this.name || {}).map(key => this.name[key]?.toLowerCase()).filter(Boolean)
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...name, ...description]
+    this.tags = [...description]
     next()
 })
+
+schema.methods.pushStock = function(productId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            product = await Product.findByIdAndUpdate(productId, { $push: { stocks: this?._id } }, { new: true })
+            resolve(product)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
 schema.pre('findOneAndUpdate', function (next) {
-    if (!this._update.name && !this._update.description) return next()
-    const name = Object.keys(this._update.name || {}).map(key => this._update.name[key]?.toLowerCase()).filter(Boolean)
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...name, ...description]
+    this._update.tags = [...description]
     next()
 })
 
-module.exports = mongoose.model('Product', schema)
+module.exports = mongoose.model('ProductStock', schema)
