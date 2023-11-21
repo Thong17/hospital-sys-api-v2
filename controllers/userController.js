@@ -82,10 +82,12 @@ exports.list = async (req, res) => {
         const page = parseInt(req.query.page ?? 1)
         const limit = parseInt(req.query.limit ?? 5)
         const skip = page - 1
+        const segment = req.query.segment
         const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
+        if (segment && segment !== 'ALL') query.segment = segment
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
