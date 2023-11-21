@@ -6,15 +6,6 @@ const createUserValidation = Joi.object({
         .min(3)
         .max(30)
         .required(),
-
-    email: Joi.string()
-        .email({ tlds: { allow: false } })
-        .optional()
-        .allow(''),
-
-    contact: Joi.string()
-        .optional()
-        .allow(''),
         
     role: Joi.string()
         .required(),
@@ -38,15 +29,6 @@ const updateUserValidation = Joi.object({
         .min(3)
         .max(30)
         .required(),
-
-    email: Joi.string()
-        .email({ tlds: { allow: false } })
-        .optional()
-        .allow(''),
-
-    contact: Joi.string()
-        .optional()
-        .allow(''),
         
     role: Joi.string()
         .required(),

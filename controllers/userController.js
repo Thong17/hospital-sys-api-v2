@@ -124,7 +124,7 @@ exports.list = async (req, res) => {
         const users = await User.find(query)
             .skip((skip) * limit)
             .limit(limit)
-            .sort({ username, createdAt })
+            .sort({ createdAt, username })
             .populate('role', 'name -_id')
 
         const totalUser = await User.count(query)

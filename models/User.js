@@ -1,6 +1,9 @@
 const mongoose = require('mongoose')
 const Role = require('./Role')
 const initialObject = require('./index')
+const Patient = require('./Patient')
+const PatientDetail = require('./PatientDetail')
+const Doctor = require('./Doctor')
 
 const schema = new mongoose.Schema(
     {
@@ -32,12 +35,6 @@ const schema = new mongoose.Schema(
                     })
                 }
             }
-        },
-        email: {
-            type: String,
-        },
-        contact: {
-            type: String,
         },
         role: {
             type: mongoose.Schema.ObjectId,
@@ -74,19 +71,39 @@ schema.pre('save', function (next) {
     const username = this.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const segment = this.segment?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const email = this.email?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const contact = this.contact?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...username, ...description, ...segment, ...email, ...contact]
+    this.tags = [...username, ...description, ...segment]
     next()
+})
+
+schema.post('save', async function (doc) {
+    try {
+        switch (true) {
+            case doc?.segment === 'PATIENT':
+                const patientLength = Patient.countDocuments({ _id: doc?._id })
+                if (patientLength > 0) break
+                await Patient.create({ _id: doc?._id })
+                await PatientDetail.create({ _id: doc?._id })
+                break
+    
+            case doc?.segment === 'DOCTOR':
+                const doctorLength = Doctor.countDocuments({ _id: doc?._id })
+                if (doctorLength > 0) return
+                await Doctor.create({ _id: doc?._id })
+                break
+        
+            default:
+                break
+        }
+    } catch (error) {
+        console.error(error)
+    }
 })
 
 schema.pre('findOneAndUpdate', function (next) {
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const username = this._update.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const segment = this._update.segment?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const contact = this._update.contact?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const email = this._update.email?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...username, ...description, ...segment, ...email, ...contact]
+    this._update.tags = [...username, ...description, ...segment]
     next()
 })
 
