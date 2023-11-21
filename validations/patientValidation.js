@@ -1,12 +1,6 @@
 const Joi = require('joi')
 
 const createPatientValidation = Joi.object({
-    username: Joi.string()
-        .alphanum()
-        .min(2)
-        .max(30)
-        .required(),
-
     fullName: Joi.string()
         .optional()
         .allow(''),
@@ -34,7 +28,8 @@ const createPatientValidation = Joi.object({
         .allow(''),
 
     gender: Joi.string()
-        .required(),
+        .optional()
+        .allow(''),
 
     status: Joi.boolean().optional(),
 
@@ -43,12 +38,6 @@ const createPatientValidation = Joi.object({
 })
 
 const updatePatientValidation = Joi.object({
-    username: Joi.string()
-        .alphanum()
-        .min(2)
-        .max(30)
-        .required(),
-
     fullName: Joi.string()
         .optional()
         .allow(''),
@@ -76,7 +65,8 @@ const updatePatientValidation = Joi.object({
         .allow(''),
 
     gender: Joi.string()
-        .required(),
+        .optional()
+        .allow(''),
 
     status: Joi.boolean().optional(),
 

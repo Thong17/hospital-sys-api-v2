@@ -6,6 +6,8 @@ const { createUserValidation, updateUserValidation } = require('../validations/u
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, readExcel, convertArrayMongo, encryptPassword, convertStringToArrayRegExp } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
+const Patient = require('../models/Patient')
+const Doctor = require('../models/Doctor')
 
 
 exports.create = async (req, res) => {
@@ -64,6 +66,30 @@ exports.detail = async (req, res) => {
     }
 }
 
+exports.info = async (req, res) => {
+    try {
+        const id = req.params.id
+        const user = await User.findById(id).select('segment -_id')
+        let info = null
+        switch (true) {
+            case user?.segment === 'PATIENT':
+                info = await Patient.findById(id)
+                break
+
+            case user?.segment === 'DOCTOR':
+                info = await Doctor.findById(id)
+                break
+        
+            default:
+                break
+        }
+
+        response.success(200, { data: { info, user } }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
 exports.history = async (req, res) => {
     try {
         const id = req.params.id
@@ -82,10 +108,12 @@ exports.list = async (req, res) => {
         const page = parseInt(req.query.page ?? 1)
         const limit = parseInt(req.query.limit ?? 5)
         const skip = page - 1
+        const segment = req.query.segment
         const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
+        if (segment && segment !== 'ALL') query.segment = segment
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -96,7 +124,7 @@ exports.list = async (req, res) => {
         const users = await User.find(query)
             .skip((skip) * limit)
             .limit(limit)
-            .sort({ username, createdAt })
+            .sort({ createdAt, username })
             .populate('role', 'name -_id')
 
         const totalUser = await User.count(query)

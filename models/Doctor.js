@@ -9,14 +9,10 @@ const schema = new mongoose.Schema(
         fullName: {
             type: String,
         },
-        username: {
-            type: String,
-            required: [true, 'LAST_NAME_IS_REQUIRED']
-        },
         gender: {
             type: String,
             enum: ['MALE', 'FEMALE'],
-            required: [true, 'GENDER_IS_REQUIRED']
+            default: 'MALE'
         },
         email: {
             type: String,
@@ -27,7 +23,6 @@ const schema = new mongoose.Schema(
         specialties: [{
             type: mongoose.Schema.ObjectId,
             ref: 'Specialty',
-            required: [true, 'SPECIALTY_IS_REQUIRED'],
             validate: {
                 validator: (id) => {
                     return new Promise(async (resolve, reject) => {
@@ -71,10 +66,9 @@ const schema = new mongoose.Schema(
 
 schema.pre('save', function (next) {
     const fullName = this.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const username = this.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const gender = this.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...fullName, ...username, ...description, ...gender]
+    this.tags = [...fullName, ...description, ...gender]
     next()
 })
 
@@ -91,10 +85,9 @@ schema.post('save', async function (doc) {
 
 schema.pre('findOneAndUpdate', function (next) {
     const fullName = this._update.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const username = this._update.username?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const gender = this._update.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...fullName, ...username, ...description, ...gender]
+    this._update.tags = [...fullName, ...description, ...gender]
     next()
 })
 

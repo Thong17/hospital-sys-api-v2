@@ -5,24 +5,19 @@ const { encryptPassword } = require('../helpers/utils')
 
 const schema = new mongoose.Schema(
     {
-        username: {
-            type: String,
-            required: [true, 'USERNAME_IS_REQUIRED']
-        },
         fullName: {
             type: String,
         },
         gender: {
             type: String,
             enum: ['MALE', 'FEMALE'],
-            required: [true, 'GENDER_IS_REQUIRED']
+            default: 'MALE'
         },
         email: {
             type: String,
         },
         contact: {
             type: String,
-            required: [true, 'CONTACT_IS_REQUIRED']
         },
         dateOfBirth: {
             type: Date
@@ -46,11 +41,10 @@ const schema = new mongoose.Schema(
 )
 
 schema.pre('save', function (next) {
-    const firstName = this.firstName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const lastName = this.lastName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const fullName = this.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const gender = this.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this.tags = [...firstName, ...lastName, ...description, ...gender]
+    this.tags = [...fullName, ...description, ...gender]
     next()
 })
 
@@ -67,11 +61,10 @@ schema.post('save', async function (doc) {
 })
 
 schema.pre('findOneAndUpdate', function (next) {
-    const firstName = this._update.firstName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    const lastName = this._update.lastName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
+    const fullName = this._update.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const description = this._update.description?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
     const gender = this._update.gender?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []
-    this._update.tags = [...firstName, ...lastName, ...description, ...gender]
+    this._update.tags = [...fullName, ...description, ...gender]
     next()
 })
 
