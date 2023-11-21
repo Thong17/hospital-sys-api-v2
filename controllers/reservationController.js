@@ -102,7 +102,17 @@ exports.detail = async (req, res) => {
             .populate('specialties', 'name')
             .populate('doctors', 'lastName firstName contact')
             .populate('patient', 'username contact')
-        response.success(200, { data: reservation }, res)
+
+        const records = await Schedule.find({ patient: reservation?.patient?._id, stage: 'ENDED' })
+            .select('-_id -patient -approval -stage')
+            .sort({ createdAt: -1 })
+            .populate('doctor', 'tags username -_id')
+            .populate({
+                path: 'patientRecord',
+                populate: 'treatments symptoms'
+            })
+
+        response.success(200, { data: reservation, records }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
