@@ -6,6 +6,8 @@ const { createUserValidation, updateUserValidation } = require('../validations/u
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, readExcel, convertArrayMongo, encryptPassword, convertStringToArrayRegExp } = require('../helpers/utils')
 const generateExcel = require('../configs/excel')
+const Patient = require('../models/Patient')
+const Doctor = require('../models/Doctor')
 
 
 exports.create = async (req, res) => {
@@ -59,6 +61,30 @@ exports.detail = async (req, res) => {
             .populate('createdBy', 'username -_id')
             .populate('updatedBy', 'username -_id')
         response.success(200, { data: user }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.info = async (req, res) => {
+    try {
+        const id = req.params.id
+        const user = await User.findById(id).select('segment -_id')
+        let info = null
+        switch (true) {
+            case user?.segment === 'PATIENT':
+                info = await Patient.findById(id)
+                break
+
+            case user?.segment === 'DOCTOR':
+                info = await Doctor.findById(id)
+                break
+        
+            default:
+                break
+        }
+
+        response.success(200, { data: { info, user } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
