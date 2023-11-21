@@ -98,7 +98,7 @@ exports.list = async (req, res) => {
             }
         }
 
-        const roles = await Role.find(query).skip((skip) * limit).limit(limit).sort({ name, createdAt })
+        const roles = await Role.find(query).skip((skip) * limit).limit(limit).sort({ name, createdAt }).populate('createdBy', 'username -_id')
         const totalRole = await Role.count(query)
         response.success(200, { data: roles, metaData: { skip, limit, total: totalRole } }, res)
     } catch (error) {
