@@ -67,7 +67,7 @@ exports.detail = async (req, res) => {
     try {
         const id = req.params.id
         const schedule = await Schedule.findById(id)
-            .populate('patient', '-_id')
+            .populate('patient')
             .populate('doctor', '-_id')
             .populate('reservation', '-_id')
             .populate('patientRecord', '-_id')
@@ -78,7 +78,17 @@ exports.detail = async (req, res) => {
                     select: 'images -_id'
                 }
             })
-        response.success(200, { data: schedule }, res)
+
+        const records = await Schedule.find({ patient: schedule?.patient?._id, stage: 'ENDED' })
+            .select('-_id -patient -approval -stage')
+            .sort({ createdAt: -1 })
+            .populate('doctor', 'tags username -_id')
+            .populate({
+                path: 'patientRecord',
+                populate: 'treatments symptoms'
+            })
+
+        response.success(200, { data: schedule, records }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
     }
