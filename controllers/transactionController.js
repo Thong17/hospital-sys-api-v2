@@ -16,8 +16,9 @@ exports.create = async (req, res) => {
         const totalPerQty = transaction.price - (transaction.discount * transaction.price / 100)
         transaction.total = totalPerQty * transaction.quantity
 
-        const stocks = await createTransactionStock(body.product, body.quantity)
-        transaction.stocks = stocks
+        const { transactionStocks, totalCost } = await createTransactionStock(body.product, body.quantity) || {}
+        transaction.stocks = transactionStocks
+        transaction.cost = totalCost
         await transaction.save()
         await transaction.populate('currency', 'symbol')
         await transaction.populate('product', 'images -_id')
