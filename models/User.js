@@ -81,14 +81,14 @@ schema.post('save', async function (doc) {
             case doc?.segment === 'PATIENT':
                 const patientLength = Patient.countDocuments({ _id: doc?._id })
                 if (patientLength > 0) break
-                await Patient.create({ _id: doc?._id })
+                await Patient.create({ _id: doc?._id, detail: doc?._id, user: doc?._id })
                 await PatientDetail.create({ _id: doc?._id })
                 break
     
             case doc?.segment === 'DOCTOR':
                 const doctorLength = Doctor.countDocuments({ _id: doc?._id })
                 if (doctorLength > 0) return
-                await Doctor.create({ _id: doc?._id })
+                await Doctor.create({ _id: doc?._id, user: doc?._id })
                 break
         
             default:
