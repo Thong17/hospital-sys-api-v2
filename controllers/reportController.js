@@ -3,7 +3,30 @@ const Payment = require('../models/Payment')
 
 exports.sale = async (req, res) => {
     try {
+        const chart = req.query.chart || 'DAILY'
+        const startDate = req.query.startDate
+        const endDate = req.query.endDate
+        let formatChart = ''
+        switch (true) {
+            case chart === 'YEARLY':
+                formatChart = '%Y'
+                break
+
+            case chart === 'MONTHLY':
+                formatChart = '%m-%Y'
+                break
+        
+            default:
+                formatChart = '%d-%m-%Y'
+                break
+        }
         const query = { stage: 'COMPLETED' }
+        if (startDate && endDate) {
+            query['createdAt'] = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            }
+        }
         const pipeline = [
             {
                 $match: query
@@ -12,7 +35,7 @@ exports.sale = async (req, res) => {
                 $addFields: {
                     monthYear: {
                         $dateToString: {
-                            format: '%m-%Y',
+                            format: formatChart,
                             date: '$createdAt',
                             timezone: 'UTC'
                         }
@@ -38,6 +61,9 @@ exports.sale = async (req, res) => {
                 $sort: {
                     monthYear: 1
                 }
+            },
+            {
+                $limit: 12
             }
         ]
         const payments = await Payment.aggregate(pipeline).exec()
