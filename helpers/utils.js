@@ -103,6 +103,7 @@ module.exports = utils = {
         return new Promise( async (resolve, reject) => {
             try {
                 let transactionQuantity = quantity
+                let totalCost = 0
                 const transactionStocks = []
                 const stocks = await ProductStock.find({ product }).sort({ createdAt: 'asc' })
                 for (let i = 0; i < stocks.length; i++) {
@@ -110,16 +111,18 @@ module.exports = utils = {
                     if (stock.remain <= 0) break
                     if (stock.remain < transactionQuantity) {
                         transactionStocks.push({ stockId: stock._id, quantity: stock.remain })
-                        transactionQuantity-=stock.remain
+                        transactionQuantity -= stock.remain
                         stock.remain = 0
                         await stock.save()
+                        totalCost += stock.cost
                         break
                     }
                     transactionStocks.push({ stockId: stock._id, quantity: transactionQuantity })
                     stock.remain -= transactionQuantity
                     transactionQuantity = 0
                     await stock.save()
-                    return resolve(transactionStocks)
+                    totalCost += stock.cost
+                    return resolve({ transactionStocks, totalCost })
                 }
                 if (transactionQuantity > 0) throw new ValidationError('PRODUCT_OUT_OF_STOCK', {})
             } catch (error) {

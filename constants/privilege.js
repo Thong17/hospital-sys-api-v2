@@ -266,7 +266,53 @@ exports.privilege = {
                 action: 'delete'
             },
         },
-    }
+    },
+    report: {
+        sale: {
+            list: {
+                route: 'sale',
+                action: 'list'
+            },
+            detail: {
+                route: 'sale',
+                action: 'detail'
+            },
+            create: {
+                route: 'sale',
+                action: 'create'
+            },
+            update: {
+                route: 'sale',
+                action: 'update'
+            },
+            delete: {
+                route: 'sale',
+                action: 'delete'
+            },
+        },
+        product: {
+            list: {
+                route: 'product',
+                action: 'list'
+            },
+            detail: {
+                route: 'product',
+                action: 'detail'
+            },
+            create: {
+                route: 'product',
+                action: 'create'
+            },
+            update: {
+                route: 'product',
+                action: 'update'
+            },
+            delete: {
+                route: 'product',
+                action: 'delete'
+            },
+        },
+    },
 }
 
 exports.navigation = {
@@ -316,6 +362,16 @@ exports.navigation = {
         payment: {
             menu: 'pos',
             navbar: 'payment'
+        },
+    },
+    report: {
+        product: {
+            menu: 'report',
+            navbar: 'product'
+        },
+        sale: {
+            menu: 'report',
+            navbar: 'sale'
         },
     },
 }

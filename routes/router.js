@@ -26,5 +26,6 @@ router.use('/home', require('./home'))
 router.use('/admin', require('./admin'))
 router.use('/organize', require('./organize'))
 router.use('/operation', require('./operation'))
+router.use('/report', require('./report'))
 
 module.exports = router

@@ -33,6 +33,10 @@ const schema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'PatientDetail',
         },
+        user: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User',
+        },
         ...initialObject
     },
     {

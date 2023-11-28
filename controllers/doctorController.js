@@ -14,6 +14,7 @@ exports.create = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
         const doctor = new Doctor(body)
+        doctor.user = doctor?._id
         doctor.createdBy = req.user?._id
         await doctor.save()
         response.success(200, { data: doctor, message: 'DOCTOR_HAS_BEEN_CREATED' }, res)
@@ -80,8 +81,10 @@ exports.list = async (req, res) => {
         const skip = page - 1
         const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
+        const status = req.query.status
         
         let query = { isDeleted: false }
+        if (status) query.status = status === 'true'
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -94,6 +97,7 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ username, createdAt })
             .populate('specialties', 'name')
+            .populate('user', '-_id username')
 
         const totalDoctor = await Doctor.count(query)
         response.success(200, { data: doctors, metaData: { skip, limit, total: totalDoctor } }, res)

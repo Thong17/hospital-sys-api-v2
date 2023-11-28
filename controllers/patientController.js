@@ -16,6 +16,8 @@ exports.create = async (req, res) => {
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
         const patient = new Patient(body)
+        patient.detail = patient?._id
+        patient.user = patient?._id
         patient.createdBy = req.user?._id
         await patient.save()
         response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_CREATED' }, res)
@@ -100,8 +102,10 @@ exports.list = async (req, res) => {
         const skip = page - 1
         const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
+        const status = req.query.status
         
         let query = { isDeleted: false }
+        if (status) query.status = status === 'true'
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -113,6 +117,7 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ username, createdAt })
+            .populate('user', '-_id username')
 
         const totalPatient = await Patient.count(query)
         response.success(200, { data: patients, metaData: { skip, limit, total: totalPatient } }, res)

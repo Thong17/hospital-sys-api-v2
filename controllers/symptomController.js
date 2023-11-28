@@ -37,8 +37,10 @@ exports.list = async (req, res) => {
         const limit = parseInt(req.query.limit ?? 5)
         const skip = page - 1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
+        const status = req.query.status
         
         let query = { isDeleted: false }
+        if (status) query.status = status === 'true'
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
