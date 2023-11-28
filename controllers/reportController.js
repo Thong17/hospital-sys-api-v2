@@ -1,5 +1,7 @@
 const response = require('../helpers/response')
 const Payment = require('../models/Payment')
+const Product = require('../models/Product')
+const Category = require('../models/Category')
 
 exports.sale = async (req, res) => {
     try {
@@ -78,5 +80,24 @@ exports.sale = async (req, res) => {
         response.success(200, { chart: payments, totalCost, totalPayment }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
+    }
+}
+
+exports.product = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page ?? 1)
+        const limit = parseInt(req.query.limit ?? 5)
+        const skip = page - 1
+
+        const totalProduct = await Product.countDocuments({ isDeleted: false })
+        const totalCategory = await Category.countDocuments({ isDeleted: false })
+        const products = await Product.find({ isDeleted: false })
+            .skip((skip) * limit)
+            .limit(limit)
+            .select('name price currency isStock code description')
+            .populate('currency', 'currency symbol')
+        response.success(200, { totalProduct, totalCategory, products, metaData: { skip, limit, total: totalProduct } }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message }, res, error)
     }
 }
