@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Transaction = require('./Transaction')
 
 const schema = mongoose.Schema(
     {
@@ -83,5 +84,14 @@ schema.pre('save', async function (next) {
     this.tags = [...invoice]
     next()
 })
+
+schema.methods.completeTransaction = async function (paymentId) {
+    try {
+        const payment = await this.model('Payment').findById(paymentId).select('-_id transactions')
+        await this.model('Transaction').updateMany({ _id: { $in: payment.transactions }}, { $set: { stage: 'COMPLETED' }})
+    } catch (error) {
+        console.error(error)
+    }
+}
 
 module.exports = mongoose.model('Payment', schema)

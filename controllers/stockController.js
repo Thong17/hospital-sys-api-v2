@@ -78,7 +78,7 @@ exports.history = async (req, res) => {
 exports.list = async (req, res) => {
     try {
         const page = parseInt(req.query.page ?? 1)
-        const limit = parseInt(req.query.limit ?? 5)
+        const limit = parseInt(req.query.limit ?? 0)
         const productId = req.query.productId
         const skip = page - 1
         const username = req.query.username === 'asc' ? 1 : -1
