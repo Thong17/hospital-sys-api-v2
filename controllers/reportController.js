@@ -2,6 +2,7 @@ const response = require('../helpers/response')
 const Payment = require('../models/Payment')
 const Product = require('../models/Product')
 const Category = require('../models/Category')
+const Transaction = require('../models/Transaction')
 
 exports.sale = async (req, res) => {
     try {
@@ -86,7 +87,7 @@ exports.sale = async (req, res) => {
 exports.product = async (req, res) => {
     try {
         const page = parseInt(req.query.page ?? 1)
-        const limit = parseInt(req.query.limit ?? 5)
+        const limit = parseInt(req.query.limit ?? 0)
         const skip = page - 1
 
         const totalProduct = await Product.countDocuments({ isDeleted: false })
@@ -96,7 +97,24 @@ exports.product = async (req, res) => {
             .limit(limit)
             .select('name price currency isStock code description')
             .populate('currency', 'currency symbol')
-        response.success(200, { totalProduct, totalCategory, products, metaData: { skip, limit, total: totalProduct } }, res)
+
+        const mappedProducts = []
+        for (let i = 0; i < products.length; i++) {
+            let product = {
+                _id: products[i]?._id,
+                name: products[i]?.name,
+                description: products[i]?.description,
+                price: products[i]?.price,
+                currency: products[i]?.currency,
+            }
+            const transactions = await Transaction.find({ product: product?._id, stage: 'COMPLETED' })
+            product['soldQuantity'] = transactions.reduce((curr, obj) => curr + obj.quantity, 0)
+            product['totalSale'] = transactions.reduce((curr, obj) => curr + obj.total, 0)
+            product['totalCost'] = transactions.reduce((curr, obj) => curr + obj.cost, 0)
+            mappedProducts.push(product)
+        }
+
+        response.success(200, { totalProduct, totalCategory, products: mappedProducts, metaData: { skip, limit, total: totalProduct } }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message }, res, error)
     }

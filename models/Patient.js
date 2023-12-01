@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const initialObject = require('./index')
-const User = require('./User')
 const { encryptPassword } = require('../helpers/utils')
 
 const schema = new mongoose.Schema(
@@ -52,17 +51,17 @@ schema.pre('save', function (next) {
     next()
 })
 
-schema.post('save', async function (doc) {
+schema.methods.onboardUser = async function (id, username) {
     try {
-        const userLength = User.countDocuments({ _id: doc?._id })
+        const userLength = await this.model('User').countDocuments({ _id: id })
         if (userLength > 0) return
-        const password = await encryptPassword(`${doc?.username}${process.env.PASSWORD_DEFAULT}`)
-        await User.create({ _id: doc?._id, username: doc?.username, password, segment: 'PATIENT' })
-        await PatientDetail.create({ _id: doc?._id })
+        const password = await encryptPassword(`${username}${process.env.PASSWORD_DEFAULT}`)
+        await this.model('User').create({ _id: id, username, password, segment: 'PATIENT' })
+        await this.model('PatientDetail').create({ _id: id })
     } catch (error) {
         console.error(error)
     }
-})
+}
 
 schema.pre('findOneAndUpdate', function (next) {
     const fullName = this._update.fullName?.split(' ').map(key => key?.toLowerCase()).filter(Boolean) || []

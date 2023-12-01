@@ -1,6 +1,10 @@
 const Joi = require('joi')
 
 const createDoctorValidation = Joi.object({
+    username: Joi.string()
+        .optional()
+        .allow(''),
+
     fullName: Joi.string()
         .optional()
         .allow(''),
@@ -41,6 +45,10 @@ const createDoctorValidation = Joi.object({
 })
 
 const updateDoctorValidation = Joi.object({
+    username: Joi.string()
+        .optional()
+        .allow(''),
+        
     fullName: Joi.string()
         .optional()
         .allow(''),

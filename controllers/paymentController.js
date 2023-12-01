@@ -54,6 +54,7 @@ exports.complete = async (req, res) => {
         body.updatedBy = req.user?._id
         body.stage = 'COMPLETED'
         const payment = await Payment.findByIdAndUpdate(id, body, { new: true })
+        await payment.completeTransaction(id)
         response.success(200, { data: payment, message: 'PAYMENT_HAS_BEEN_COMPLETED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -121,7 +122,7 @@ exports.detail = async (req, res) => {
 exports.list = async (req, res) => {
     try {
         const page = parseInt(req.query.page ?? 1)
-        const limit = parseInt(req.query.limit ?? 5)
+        const limit = parseInt(req.query.limit ?? 0)
         const skip = page - 1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
 

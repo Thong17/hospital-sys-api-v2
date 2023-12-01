@@ -85,7 +85,7 @@ exports.history = async (req, res) => {
 exports.list = async (req, res) => {
     try {
         const page = parseInt(req.query.page ?? 1)
-        const limit = parseInt(req.query.limit ?? 5)
+        const limit = parseInt(req.query.limit ?? 0)
         const skip = page - 1
         const name = req.query.name === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1

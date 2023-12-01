@@ -20,6 +20,7 @@ exports.create = async (req, res) => {
         patient.user = patient?._id
         patient.createdBy = req.user?._id
         await patient.save()
+        await patient.onboardUser(patient?._id, body.username)
         response.success(200, { data: patient, message: 'PATIENT_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
@@ -98,7 +99,7 @@ exports.history = async (req, res) => {
 exports.list = async (req, res) => {
     try {
         const page = parseInt(req.query.page ?? 1)
-        const limit = parseInt(req.query.limit ?? 5)
+        const limit = parseInt(req.query.limit ?? 0)
         const skip = page - 1
         const username = req.query.username === 'asc' ? 1 : -1
         const createdAt = req.query.createdAt === 'asc' ? 1 : -1
