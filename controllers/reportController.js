@@ -119,3 +119,29 @@ exports.product = async (req, res) => {
         response.failure(error.code, { message: error.message }, res, error)
     }
 }
+
+exports.listTransaction = async (req, res) => {
+    try {
+        const start = req.query.start?.split('-').map(Number)
+        const end = req.query.end?.split('-').map(Number)
+        let query = { stage: 'COMPLETED' }
+        if (start?.length > 0 && end?.length > 0) {
+            const startDate = new Date(start[2], start[1] - 1, start[0])
+            const endDate = new Date(end[2], end[1] - 1, end[0])
+            query['createdAt'] = {
+                $gte: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 0, 0, 0, 0),
+                $lte: new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999),
+            }
+        }
+
+        const payments = await Payment.find(query).populate('transactions')
+        const mappedPayment = payments.map(item => {
+            const cost = item.transactions?.reduce((acc, obj) => acc + obj.cost, 0)
+            return { invoice: item.invoice, total: item.total, cost, profit: item.total - cost, createdAt: item.createdAt }
+        })
+
+        response.success(200, { data: mappedPayment }, res)
+    } catch (error) {
+        response.failure(error.code, { message: error.message }, res, error)
+    }
+}
