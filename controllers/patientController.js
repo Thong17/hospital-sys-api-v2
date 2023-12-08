@@ -101,8 +101,7 @@ exports.list = async (req, res) => {
         const page = parseInt(req.query.page ?? 1)
         const limit = parseInt(req.query.limit ?? 0)
         const skip = page - 1
-        const username = req.query.username === 'asc' ? 1 : -1
-        const createdAt = req.query.createdAt === 'asc' ? 1 : -1
+        const updatedAt = req.query.updatedAt === 'asc' ? 1 : -1
         const status = req.query.status
         
         let query = { isDeleted: false }
@@ -117,7 +116,7 @@ exports.list = async (req, res) => {
         const patients = await Patient.find(query)
             .skip((skip) * limit)
             .limit(limit)
-            .sort({ username, createdAt })
+            .sort({ updatedAt })
             .populate('user', '-_id username')
 
         const totalPatient = await Patient.count(query)

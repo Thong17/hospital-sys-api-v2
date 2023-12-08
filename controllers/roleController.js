@@ -87,8 +87,7 @@ exports.list = async (req, res) => {
         const page = parseInt(req.query.page ?? 1)
         const limit = parseInt(req.query.limit ?? 0)
         const skip = page - 1
-        const name = req.query.name === 'asc' ? 1 : -1
-        const createdAt = req.query.createdAt === 'asc' ? 1 : -1
+        const updatedAt = req.query.updatedAt === 'asc' ? 1 : -1
         
         let query = { isDeleted: false }
         const search = convertStringToArrayRegExp(req.query.search)
@@ -98,7 +97,7 @@ exports.list = async (req, res) => {
             }
         }
 
-        const roles = await Role.find(query).skip((skip) * limit).limit(limit).sort({ name, createdAt }).populate('createdBy', 'username -_id')
+        const roles = await Role.find(query).skip((skip) * limit).limit(limit).sort({ updatedAt }).populate('updatedBy', 'username -_id')
         const totalRole = await Role.count(query)
         response.success(200, { data: roles, metaData: { skip, limit, total: totalRole } }, res)
     } catch (error) {

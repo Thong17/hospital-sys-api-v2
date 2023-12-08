@@ -29,6 +29,14 @@ exports.privilege = {
                 route: 'user',
                 action: 'reject'
             },
+            import: {
+                route: 'user',
+                action: 'import'
+            },
+            export: {
+                route: 'user',
+                action: 'export'
+            },
         },
         role: {
             list: {
@@ -58,6 +66,14 @@ exports.privilege = {
             reject: {
                 route: 'role',
                 action: 'reject'
+            },
+            import: {
+                route: 'role',
+                action: 'import'
+            },
+            export: {
+                route: 'role',
+                action: 'export'
             },
         },
         doctor: {
@@ -89,6 +105,14 @@ exports.privilege = {
                 route: 'doctor',
                 action: 'reject'
             },
+            import: {
+                route: 'doctor',
+                action: 'import'
+            },
+            export: {
+                route: 'doctor',
+                action: 'export'
+            },
         },
         patient: {
             list: {
@@ -118,6 +142,14 @@ exports.privilege = {
             reject: {
                 route: 'patient',
                 action: 'reject'
+            },
+            import: {
+                route: 'patient',
+                action: 'import'
+            },
+            export: {
+                route: 'patient',
+                action: 'export'
             },
         },
     },
@@ -197,6 +229,36 @@ exports.privilege = {
                 route: 'product',
                 action: 'delete'
             },
+            import: {
+                route: 'product',
+                action: 'import'
+            },
+            export: {
+                route: 'product',
+                action: 'export'
+            },
+        },
+        stock: {
+            list: {
+                route: 'stock',
+                action: 'list'
+            },
+            detail: {
+                route: 'stock',
+                action: 'detail'
+            },
+            create: {
+                route: 'stock',
+                action: 'create'
+            },
+            update: {
+                route: 'stock',
+                action: 'update'
+            },
+            delete: {
+                route: 'stock',
+                action: 'delete'
+            },
         },
         clinic: {
             list: {
@@ -269,47 +331,15 @@ exports.privilege = {
     },
     report: {
         sale: {
-            list: {
-                route: 'sale',
-                action: 'list'
-            },
             detail: {
                 route: 'sale',
                 action: 'detail'
-            },
-            create: {
-                route: 'sale',
-                action: 'create'
-            },
-            update: {
-                route: 'sale',
-                action: 'update'
-            },
-            delete: {
-                route: 'sale',
-                action: 'delete'
             },
         },
         product: {
-            list: {
-                route: 'product',
-                action: 'list'
-            },
             detail: {
                 route: 'product',
                 action: 'detail'
-            },
-            create: {
-                route: 'product',
-                action: 'create'
-            },
-            update: {
-                route: 'product',
-                action: 'update'
-            },
-            delete: {
-                route: 'product',
-                action: 'delete'
             },
         },
     },
@@ -348,6 +378,10 @@ exports.navigation = {
         product: {
             menu: 'organize',
             navbar: 'product'
+        },
+        stock: {
+            menu: 'organize',
+            navbar: 'stock'
         },
         clinic: {
             menu: 'organize',
