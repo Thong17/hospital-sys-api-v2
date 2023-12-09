@@ -108,6 +108,12 @@ exports.list = async (req, res) => {
             }
             query['doctor'] = req.user?._id
         }
+        if (req.user?.segment === 'PATIENT') {
+            query['stage'] = {
+                $in: ['PENDING', 'STARTED', 'ENDED']
+            }
+            query['patient'] = req.user?._id
+        }
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -120,8 +126,8 @@ exports.list = async (req, res) => {
             .limit(limit)
             .sort({ createdAt })
             .populate('reservation', 'appointmentDate note -_id')
-            .populate('doctor', 'username fullName contact -_id')
-            .populate('patient', 'username fullName contact -_id')
+            .populate({ path: 'patient', select: 'contact user -_id', populate: { path: 'user', select: 'username -_id' } })
+            .populate({ path: 'doctor', select: 'contact user -_id', populate: { path: 'user', select: 'username -_id' } })
 
         const totalSchedule = await Schedule.count({ approval: 'ACCEPTED' })
         response.success(200, { data: schedules, metaData: { skip, limit, total: totalSchedule } }, res)

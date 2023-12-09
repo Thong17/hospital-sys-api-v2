@@ -133,6 +133,12 @@ exports.list = async (req, res) => {
                 $in: req.user?._id
             }
         }
+        if (req.user?.segment === 'PATIENT') {
+            query['stage'] = {
+                $in: ['ACCEPTED', 'PENDING', 'REFUSED']
+            }
+            query['patient'] = req.user?._id
+        }
         const search = convertStringToArrayRegExp(req.query.search)
         if (search?.length > 0) {
             query['tags'] = {
@@ -144,8 +150,8 @@ exports.list = async (req, res) => {
             .skip((skip) * limit)
             .limit(limit)
             .sort({ appointmentDate, createdAt })
-            .populate('patient', 'username contact -_id')
-            .populate('doctors', 'username contact -_id')
+            .populate({ path: 'patient', select: 'contact user -_id', populate: { path: 'user', select: 'username -_id' } })
+            .populate({ path: 'doctors', select: 'contact user -_id', populate: { path: 'user', select: 'username -_id' } })
 
         const totalReservation = await Reservation.count(query)
         response.success(200, { data: reservation, metaData: { skip, limit, total: totalReservation } }, res)

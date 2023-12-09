@@ -40,19 +40,18 @@ exports.success = (code = 200, data, res) => {
     }
 }
 
-exports.failure = (code = 500, data, res, error) => {
+exports.failure = (code = 500, data, res, errorObj) => {
     try {
         const result = {
             code: failureCode[code] || 'UNKNOWN_CODE',
             ...data
         }
-        error && console.error(error)
+        errorObj && console.error(errorObj)
         res.status(code)
         res.json(result)
     } catch (error) {
-        // TODO: Handle Invalid status code 11000 when duplicate
-        res.status(500)
-        res.json(error)
+        if (error?.code === 'ERR_HTTP_INVALID_STATUS_CODE') res.status(500)
+        res.json(errorObj)
     }
 }
 

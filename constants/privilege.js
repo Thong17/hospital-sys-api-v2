@@ -205,6 +205,14 @@ exports.privilege = {
                 route: 'schedule',
                 action: 'delete'
             },
+            start: {
+                route: 'schedule',
+                action: 'start'
+            },
+            end: {
+                route: 'schedule',
+                action: 'end'
+            },
         },
     },
     organize: {
