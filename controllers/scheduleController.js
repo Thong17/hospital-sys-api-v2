@@ -67,7 +67,7 @@ exports.detail = async (req, res) => {
     try {
         const id = req.params.id
         const schedule = await Schedule.findById(id)
-            .populate('patient')
+            .populate({ path: 'patient', populate: { path: 'user', select: 'username -_id' } })
             .populate('doctor', '-_id')
             .populate('reservation', '-_id')
             .populate('patientRecord', '-_id')
