@@ -66,6 +66,10 @@ const schema = mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: 'Schedule'
         },
+        detail: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'TransactionDetail'
+        },
         stage: {
             type: String,
             enum: ['PENDING', 'COMPLETED', 'REMOVED'],

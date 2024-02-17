@@ -1,5 +1,6 @@
 const response = require('../helpers/response')
 const Transaction = require('../models/Transaction')
+const TransactionDetail = require('../models/TransactionDetail')
 const { createTransactionValidation, updateTransactionValidation } = require('../validations/transactionValidation')
 const { ValidationError } = require('../helpers/handlingErrors')
 const { extractJoiErrors, convertStringToArrayRegExp, createTransactionStock, reverseTransactionStock } = require('../helpers/utils')
@@ -31,12 +32,17 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
+        const id = req.params.id
+        const detail = req.body.detail
+        detail.transaction = id
+        if (detail) await TransactionDetail.findByIdAndUpdate(id, detail, { upsert: true, new: true })
+        
+        delete req.body.detail
         const { error } = updateTransactionValidation.validate(req.body, { abortEarly: false })
         if (error) throw new ValidationError(error.message, extractJoiErrors(error))
         const body = req.body
-        const transaction = new Transaction(body)
-        transaction.updatedBy = req.user?._id
-        await transaction.save()
+        body.updatedBy = req.user?._id
+        const transaction = await Transaction.findByIdAndUpdate(id, body)
         response.success(200, { data: transaction, message: 'TRANSACTION_HAS_BEEN_CREATED' }, res)
     } catch (error) {
         response.failure(error.code, { message: error.message, fields: error.fields }, res, error)
