@@ -73,10 +73,16 @@ exports.detail = async (req, res) => {
             .populate('patientRecord', '-_id')
             .populate({
                 path: 'transactions',
-                populate: {
-                    path: 'product',
-                    select: 'images -_id'
-                }
+                populate: [
+                    {
+                        path: 'product',
+                        select: 'images -_id'
+                    }, {
+                        path: 'detail',
+                    }, {
+                        path: 'currency',
+                    }
+                ]
             })
 
         const records = await Schedule.find({ patient: schedule?.patient?._id, stage: 'ENDED' })
